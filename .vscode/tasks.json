@@ -6,14 +6,13 @@
             "command": "/usr/bin/clang++",
             "args": [
                 "-g",
+                "-std=c++17",
                 "-I${workspaceFolder}/include",
                 "-L${workspaceFolder}/lib",
                 "-rpath",
                 "${workspaceFolder}/lib",
-                
                 "${fileDirname}/*.cpp",
                 "${fileDirname}/glad.c",
-                
                 "-lglfw3",
                 "-framework",
                 "Cocoa",
