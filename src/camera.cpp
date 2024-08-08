@@ -39,6 +39,13 @@ void Camera::Inputs(GLFWwindow* window)
 
     if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
     {
+
+        if(firstClick)
+        {
+            glfwSetCursorPos(window, width / 2, height / 2);
+            firstClick = false;
+        }
+
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         double mouseX, mouseY;
         glfwGetCursorPos(window, &mouseX, &mouseY);
