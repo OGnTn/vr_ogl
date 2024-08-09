@@ -15,6 +15,30 @@ std::string get_file_contents(const char* filename)
     }
     throw(errno);
 }
+Shader::Shader()
+{
+    std::string vertexCode = get_file_contents("../res/shaders/def.vert");
+    std::string fragmentCode = get_file_contents("../res/shaders/def.vert");
+
+    const char* vertexShaderCode = vertexCode.c_str();
+    const char* fragmentShaderCode = fragmentCode.c_str();
+
+    GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vertexShader, 1, &vertexShaderCode, NULL);
+	glCompileShader(vertexShader);
+
+	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fragmentShader, 1, &fragmentShaderCode, NULL);
+	glCompileShader(fragmentShader);
+
+	ID = glCreateProgram();
+	glAttachShader(ID, vertexShader);
+	glAttachShader(ID, fragmentShader);
+	glLinkProgram(ID);
+
+	glDeleteShader(vertexShader);
+	glDeleteShader(fragmentShader);
+}
 
 Shader::Shader(const char* vertexFile, const char* fragmentFile)
 {

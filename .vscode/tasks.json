@@ -6,6 +6,7 @@
             "command": "/usr/bin/clang++",
             "args": [
                 "-g",
+                "-mmacosx-version-min=14.2",
                 "-std=c++17",
                 "-I${workspaceFolder}/include",
                 "-L${workspaceFolder}/lib",
@@ -21,6 +22,7 @@
                 "-framework",
                 "IOKit",
                 "-lm",
+                "-lassimp",
                 //"${workspaceFolder}/lib/libglfw.3.dylib",
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}"

@@ -19,5 +19,6 @@ void main()
    gl_Position = camMatrix * vec4(fragPos, 1.0);
    color = aColor;
    texCoord = aTex;
-   Normal = aNormal;
+   //Normal = aNormal;
+   Normal = vec3(model * vec4(aNormal, 1.0));
 }
