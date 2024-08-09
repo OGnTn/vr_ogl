@@ -16,6 +16,7 @@ public:
     static void process_node(aiNode *node, const aiScene *scene, std::vector<Mesh> &meshes, std::vector<std::string> &materials_loaded, const aiMatrix4x4 &parent_transformation);
 
     static Mesh process_mesh(aiMesh *mesh, const aiScene *scene, const aiMatrix4x4 &node_transformation, std::vector<std::string> &materials_loaded);
-    static std::vector<Texture> load_material_textures(aiMaterial *mat, aiTextureType type, std::string type_name, const aiScene *scene);
+    static void process_external_texture(aiMaterial *mat, int slot, aiTextureType type, std::vector<Texture> &textures);
+    static void process_internal_texture(aiMaterial *mat, int slot, aiTextureType type, const aiScene *scene, std::vector<Texture> &textures);
 };
 #endif

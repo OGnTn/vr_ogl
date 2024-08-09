@@ -12,7 +12,7 @@ Texture::Texture(const char *image, const char *texType, GLuint slot, GLenum for
     glActiveTexture(GL_TEXTURE0 + slot);
     unit = slot;
     glBindTexture(GL_TEXTURE_2D, ID);
-    std::cout << "loaded texture: " << image << " with slot: " << slot << std::endl;
+    // std::cout << "loaded texture: " << image << " with slot: " << slot << std::endl;
 
     // Set the texture wrapping/filtering options (on the currently bound texture object)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);

@@ -20,7 +20,7 @@ void ModelLoader::process_node(aiNode *node, const aiScene *scene, std::vector<M
 {
     aiMatrix4x4 node_transformation = parent_transformation * node->mTransformation;
 
-    std::cout << "Processing node: " << node->mName.C_Str() << std::endl;
+    // std::cout << "Processing node: " << node->mName.C_Str() << std::endl;
     for (unsigned int i = 0; i < node->mNumMeshes; i++)
     {
         aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
@@ -58,7 +58,7 @@ void apply_transform(glm::vec3 &vertex, const aiMatrix4x4 &transformation)
 
 Mesh ModelLoader::process_mesh(aiMesh *mesh, const aiScene *scene, const aiMatrix4x4 &node_transformation, std::vector<std::string> &materials_loaded)
 {
-    std::cout << "Processing mesh: " << mesh->mName.C_Str() << std::endl;
+    // std::cout << "Processing mesh: " << mesh->mName.C_Str() << std::endl;
     std::vector<Vertex> vertices;
     std::vector<GLuint> indices;
     std::vector<Texture> textures;
@@ -112,60 +112,122 @@ Mesh ModelLoader::process_mesh(aiMesh *mesh, const aiScene *scene, const aiMatri
         aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
 
         unsigned int diffuse_count = material->GetTextureCount(aiTextureType_DIFFUSE);
-        if (diffuse_count)
+        unsigned int specular_count = material->GetTextureCount(aiTextureType_SPECULAR);
+
+        for (int diffuse_index = 0; diffuse_index < diffuse_count; diffuse_index++)
         {
             aiString texture_file;
             material->Get(AI_MATKEY_TEXTURE(aiTextureType_DIFFUSE, 0), texture_file);
             if ('*' != texture_file.data[0])
             {
-                // if the path contains "/", assume it is an absolute path
-                if (strchr(texture_file.C_Str(), '/') != NULL)
-                {
-                    std::cout << "external texture" << std::endl;
-                    std::cout << texture_file.C_Str() << std::endl;
-                    Texture tex(texture_file.C_Str(), "diffuse", 0, GL_RGBA, GL_UNSIGNED_BYTE);
-                    textures.push_back(tex);
-                }
-                else
-                {
-                    // relative filename. look for it in ../res/textures/
-                    std::string texture_path = "../res/textures/";
-                    texture_path += texture_file.C_Str();
-                    std::cout << "internal texture" << std::endl;
-                    Texture tex(texture_path.c_str(), "diffuse", 0, GL_RGBA, GL_UNSIGNED_BYTE);
-                    textures.push_back(tex);
-                }
+                // external texture
+                process_external_texture(material, diffuse_index, aiTextureType_DIFFUSE, textures);
             }
             else
             {
                 // internal texture
-                std::cout << "internal texture" << std::endl;
-                unsigned int path = atoi(texture_file.C_Str() + 1);
-                aiTexture *t = scene->mTextures[path];
-                if (t->mHeight == 0)
-                {
-                    // compressed texture
-                    aiTexel *texel = t->pcData;
-                    unsigned char *rawData = reinterpret_cast<unsigned char *>(texel);
-
-                    int width, height, nrChannels;
-                    stbi_info_from_memory(rawData, t->mWidth, &width, &height, &nrChannels);
-
-                    unsigned char *img = stbi_load_from_memory(rawData, t->mWidth, &width, &height, &nrChannels, 3);
-                    Texture tex(img, width, height, nrChannels, "diffuse", 0, GL_RGBA, GL_UNSIGNED_BYTE);
-                    stbi_image_free(img);
-                    textures.push_back(tex);
-                }
-                else
-                {
-                    // uncompressed texture
-                    Texture tex((unsigned char *)t->pcData, t->mWidth, t->mHeight, 3, "diffuse", 0, GL_RGBA, GL_UNSIGNED_BYTE);
-                    textures.push_back(tex);
-                }
+                process_internal_texture(material, diffuse_index, aiTextureType_DIFFUSE, scene, textures);
             }
         }
-        materials_loaded.push_back(material->GetName().C_Str());
+
+        for (int specular_index = 0; specular_index < specular_count; specular_index++)
+        {
+            aiString texture_file;
+            material->Get(AI_MATKEY_TEXTURE(aiTextureType_SPECULAR, 0), texture_file);
+            if ('*' != texture_file.data[0])
+            {
+                // external texture
+                process_external_texture(material, specular_index, aiTextureType_DIFFUSE, textures);
+            }
+            else
+            {
+                // internal texture
+                process_internal_texture(material, specular_index, aiTextureType_DIFFUSE, scene, textures);
+            }
+        }
     }
 
     return Mesh(vertices, indices, textures);
+}
+
+void ModelLoader::process_external_texture(aiMaterial *mat, int slot, aiTextureType type, std::vector<Texture> &textures)
+{
+    aiString texture_file;
+    mat->Get(AI_MATKEY_TEXTURE(type, 0), texture_file);
+    // external texture
+    //  if the path contains "/", assume it is an absolute path
+
+    std::string tex_type;
+    if (type == aiTextureType_DIFFUSE)
+    {
+        tex_type = "diffuse";
+    }
+    else if (type == aiTextureType_SPECULAR)
+    {
+        tex_type = "specular";
+    }
+    else
+    {
+        tex_type = "diffuse";
+    }
+    if (strchr(texture_file.C_Str(), '/') != NULL)
+    {
+        // std::cout << "external texture" << std::endl;
+        // std::cout << texture_file.C_Str() << std::endl;
+        Texture tex(texture_file.C_Str(), tex_type.c_str(), slot, GL_RGBA, GL_UNSIGNED_BYTE);
+        textures.push_back(tex);
+    }
+    else
+    {
+        // relative filename. look for it in ../res/textures/
+        std::string texture_path = "../res/textures/";
+        texture_path += texture_file.C_Str();
+        // std::cout << "internal texture" << std::endl;
+        Texture tex(texture_path.c_str(), tex_type.c_str(), slot, GL_RGBA, GL_UNSIGNED_BYTE);
+        textures.push_back(tex);
+    }
+}
+
+void ModelLoader::process_internal_texture(aiMaterial *mat, int slot, aiTextureType type, const aiScene *scene, std::vector<Texture> &textures)
+{
+    // std::cout << "internal texture" << std::endl;
+    aiString texture_file;
+    mat->Get(AI_MATKEY_TEXTURE(type, 0), texture_file);
+
+    std::string tex_type;
+    if (type == aiTextureType_DIFFUSE)
+    {
+        tex_type = "diffuse";
+    }
+    else if (type == aiTextureType_SPECULAR)
+    {
+        tex_type = "specular";
+    }
+    else
+    {
+        tex_type = "diffuse";
+    }
+
+    unsigned int path = atoi(texture_file.C_Str() + 1);
+    aiTexture *t = scene->mTextures[path];
+    if (t->mHeight == 0)
+    {
+        // compressed texture
+        aiTexel *texel = t->pcData;
+        unsigned char *rawData = reinterpret_cast<unsigned char *>(texel);
+
+        int width, height, nrChannels;
+        stbi_info_from_memory(rawData, t->mWidth, &width, &height, &nrChannels);
+
+        unsigned char *img = stbi_load_from_memory(rawData, t->mWidth, &width, &height, &nrChannels, 3);
+        Texture tex(img, width, height, nrChannels, tex_type.c_str(), slot, GL_RGBA, GL_UNSIGNED_BYTE);
+        stbi_image_free(img);
+        textures.push_back(tex);
+    }
+    else
+    {
+        // uncompressed texture
+        Texture tex((unsigned char *)t->pcData, t->mWidth, t->mHeight, 3, tex_type.c_str(), slot, GL_RGBA, GL_UNSIGNED_BYTE);
+        textures.push_back(tex);
+    }
 }
