@@ -154,7 +154,7 @@ void ModelLoader::process_external_texture(aiMaterial *mat, int slot, aiTextureT
 {
     aiString texture_file;
     mat->Get(AI_MATKEY_TEXTURE(type, 0), texture_file);
-    // external texture
+    std::cout << "external texture" << std::endl;
     //  if the path contains "/", assume it is an absolute path
 
     std::string tex_type;
@@ -170,16 +170,37 @@ void ModelLoader::process_external_texture(aiMaterial *mat, int slot, aiTextureT
     {
         tex_type = "diffuse";
     }
-    if (strchr(texture_file.C_Str(), '/') != NULL)
+    if (strchr(texture_file.C_Str(), '/') != NULL || strchr(texture_file.C_Str(), '\\') != NULL)
     {
-        // std::cout << "external texture" << std::endl;
-        // std::cout << texture_file.C_Str() << std::endl;
-        Texture tex(texture_file.C_Str(), tex_type.c_str(), slot, GL_RGBA, GL_UNSIGNED_BYTE);
+
+        std::cout << "absolute texture" << std::endl;
+        std::cout << texture_file.C_Str() << std::endl;
+
+        std::string texture_name = texture_file.C_Str();
+        size_t pos = texture_name.find_last_of('/');
+        if (pos != std::string::npos)
+        {
+            texture_name = texture_name.substr(pos + 1);
+        }
+        pos = texture_name.find_last_of('\\');
+        if (pos != std::string::npos)
+        {
+            texture_name = texture_name.substr(pos + 1);
+        }
+
+        std::string texture_path = "../res/textures/";
+        texture_path += texture_name;
+
+        Texture tex(texture_path.c_str(), tex_type.c_str(), slot, GL_RGBA, GL_UNSIGNED_BYTE);
         textures.push_back(tex);
     }
     else
     {
-        // relative filename. look for it in ../res/textures/
+        std::cout << "relative texture" << std::endl;
+        std::cout << texture_file.C_Str() << std::endl;
+        // relative filename. take the last part and look for it in ../res/textures/
+        // split the string and get the part after the last '/'
+
         std::string texture_path = "../res/textures/";
         texture_path += texture_file.C_Str();
         // std::cout << "internal texture" << std::endl;
@@ -190,7 +211,7 @@ void ModelLoader::process_external_texture(aiMaterial *mat, int slot, aiTextureT
 
 void ModelLoader::process_internal_texture(aiMaterial *mat, int slot, aiTextureType type, const aiScene *scene, std::vector<Texture> &textures)
 {
-    // std::cout << "internal texture" << std::endl;
+    std::cout << "internal texture" << std::endl;
     aiString texture_file;
     mat->Get(AI_MATKEY_TEXTURE(type, 0), texture_file);
 

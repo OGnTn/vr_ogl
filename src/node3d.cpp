@@ -1,6 +1,6 @@
 #include "user/node3d.h"
 
-Node3D::Node3D(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, Shader& shader): shader(shader)
+Node3D::Node3D(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, Shader &shader) : shader(shader)
 {
     this->position = position;
     this->rotation = rotation;
@@ -18,7 +18,7 @@ void Node3D::set_position(glm::vec3 position)
 {
     this->position = position;
     update_model();
-    }
+}
 
 void Node3D::set_rotation(glm::vec3 rotation)
 {
@@ -42,12 +42,12 @@ void Node3D::update_model()
     this->model = glm::scale(this->model, this->scale);
 }
 
-void Node3D::draw(Camera& camera, glm::vec4 lightColor, glm::vec3 lightPos){
+void Node3D::draw()
+{
     shader.Activate();
-	glUniformMatrix4fv(glGetUniformLocation(shader.ID, "model"), 1, GL_FALSE, glm::value_ptr(this->model));
-	glUniform4f(glGetUniformLocation(shader.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
-	glUniform3f(glGetUniformLocation(shader.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-    for (Mesh mesh : this->meshes){
-        mesh.Draw(this->shader, camera);
+    glUniformMatrix4fv(glGetUniformLocation(shader.ID, "model"), 1, GL_FALSE, glm::value_ptr(this->model));
+    for (Mesh mesh : this->meshes)
+    {
+        mesh.Draw(this->shader);
     }
 }

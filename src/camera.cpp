@@ -14,16 +14,16 @@ void Camera::updateMatrix(float FOVdeg, float nearPlane, float farPlane)
 
     view = glm::lookAt(Position, Position + Orientation, Up);
     projection = glm::perspective(glm::radians(FOVdeg), (float)width / height, nearPlane, farPlane);
-    
+
     cameraMatrix = projection * view;
 }
 
-void Camera::Matrix(Shader &shader, const char* uniform)
+void Camera::Matrix(Shader &shader, const char *uniform)
 {
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, uniform), 1, GL_FALSE, glm::value_ptr(cameraMatrix));
 }
 
-void Camera::Inputs(GLFWwindow* window)
+void Camera::Inputs(GLFWwindow *window)
 {
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         Position += speed * Orientation;
@@ -42,10 +42,10 @@ void Camera::Inputs(GLFWwindow* window)
     else if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
         speed = 0.1f;
 
-    if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
     {
 
-        if(firstClick)
+        if (firstClick)
         {
             glfwSetCursorPos(window, width / 2, height / 2);
             firstClick = false;
@@ -59,7 +59,7 @@ void Camera::Inputs(GLFWwindow* window)
         float rotY = sensitivity * (float)(mouseX - width / 2) / width;
 
         glm::vec3 newOrientation = glm::rotate(Orientation, glm::radians(-rotX), glm::normalize(glm::cross(Orientation, Up)));
-        if(!(glm::angle(newOrientation, Up) <= glm::radians(5.0f) || glm::angle(newOrientation, -Up) <= glm::radians(5.0f)))
+        if (!(glm::angle(newOrientation, Up) <= glm::radians(5.0f) || glm::angle(newOrientation, -Up) <= glm::radians(5.0f)))
             Orientation = newOrientation;
 
         Orientation = glm::rotate(Orientation, glm::radians(-rotY), Up);

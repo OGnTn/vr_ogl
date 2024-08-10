@@ -27,7 +27,7 @@ Texture::Texture(const char *image, const char *texType, GLuint slot, GLenum for
     }
     else
     {
-        std::cout << "Failed to load texture" << std::endl;
+        std::cout << "Failed to load texture" << image << std::endl;
     }
     stbi_image_free(data);
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -82,6 +82,7 @@ Texture::Texture(unsigned char *data, int width, int height, int numColCh, const
             data);
     else
         throw std::invalid_argument("Automatic Texture type recognition failed");
+
     glGenerateMipmap(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, 0);
 }

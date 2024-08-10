@@ -6,23 +6,41 @@ in vec2 texCoord;
 
 in vec3 Normal;
 in vec3 fragPos;
+in vec3 camPos;
+
+
+
+struct str_point_light
+{
+   vec3 position;
+   vec4 color;
+   float linear;
+   float quadratic;
+   float constant;
+};
+in str_point_light[1] lights;
+
+//layout(std140) uniform Lights 
+//{
+//   str_point_light lights[1];
+//};
 
 uniform sampler2D diffuse0;
 uniform sampler2D specular0;
 
 uniform vec4 lightColor;
 uniform vec3 lightPos;
-uniform vec3 camPos;
+//uniform vec3 camPos;
 
-vec4 point_light() {
+vec4 point_light(int i) {
 
-   vec3 light_vector = lightPos - fragPos;
+   vec3 light_vector = lights[i].position - fragPos;
    float light_distance = length(light_vector);
 
-   float quadratic = 0.1f;
-   float linear = 0.3f;
-   float constant = 1.0f;
-   float intensity = 1.0f / (quadratic * pow(light_distance, 2) + linear * light_distance + constant);
+   //float quadratic = 0.1f;
+   //float linear = 0.3f;
+   //float constant = 1.0f;
+   float intensity = 1.0f / (lights[i].quadratic * pow(light_distance, 2) + lights[i].linear * light_distance + lights[i].constant);
 
    float ambient = 0.2f;
    vec3 normal = normalize(Normal);
@@ -36,7 +54,8 @@ vec4 point_light() {
    float specAmount = pow(max(dot(viewDir, reflectDir), 0.0f), 16);
    float specular = specularLight * specAmount;
 
-   return (texture(diffuse0, texCoord) * (diffuse * intensity + ambient) + texture(specular0, texCoord).r * specular * intensity) * lightColor;
+   return (texture(diffuse0, texCoord) * (diffuse * intensity + ambient) + texture(specular0, texCoord).r * specular * intensity) * lights[i].color;
+   
    }
 
 vec4 spot_light() {
@@ -84,5 +103,18 @@ vec4 directional_light() {
 
 void main()
 {
-	FragColor = point_light();
+   vec4 c = vec4(0.0f, 0.0f, 0.0f, 0.0f);
+
+   for (int i = 0; i < 1; i++)
+   {
+         c += point_light(i);
+         
+   }
+   c.r = clamp(c.r, 0.0f, 1.0f);
+   c.g = clamp(c.g, 0.0f, 1.0f);
+   c.b = clamp(c.b, 0.0f, 1.0f);
+   c.a = clamp(c.a, 0.0f, 1.0f);
+   FragColor = c;
+   
+	//FragColor = point_light();
 }

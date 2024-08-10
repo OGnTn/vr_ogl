@@ -8,17 +8,42 @@ out vec3 fragPos;
 out vec3 Normal;
 out vec3 color;
 out vec2 texCoord;
+out vec3 camPos;
 
 uniform mat4 camMatrix;
 uniform mat4 model;
 
+layout (std140) uniform CameraMatrices
+{
+    mat4 cam;
+    vec3 camPosition;
+};
+
+struct str_point_light
+{
+   vec3 position;
+   vec4 color;
+   float linear;
+   float quadratic;
+   float constant;
+};
+out str_point_light[1] lights;
+
+layout(std140) uniform Lights 
+{
+   str_point_light ilights[1];
+};
+
+
+
 void main()
 {
    fragPos = vec3(model * vec4(aPos, 1.0));
-
-   gl_Position = camMatrix * vec4(fragPos, 1.0);
+   camPos = camPosition;
+   gl_Position = cam * vec4(fragPos, 1.0);
    color = aColor;
    texCoord = aTex;
    //Normal = aNormal;
+   lights = ilights;
    Normal = vec3(model * vec4(aNormal, 1.0));
 }
