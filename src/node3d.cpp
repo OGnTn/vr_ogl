@@ -44,10 +44,26 @@ void Node3D::update_model()
 
 void Node3D::draw()
 {
-    shader.Activate();
-    glUniformMatrix4fv(glGetUniformLocation(shader.ID, "model"), 1, GL_FALSE, glm::value_ptr(this->model));
+    this->shader.Activate();
+    GLuint modelLoc = glGetUniformLocation(this->shader.ID, "model");
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(this->model));
+
     for (Mesh mesh : this->meshes)
     {
-        mesh.Draw(this->shader);
+        // mesh.shader.Activate();
+        // GLuint modelLoc = glGetUniformLocation(mesh.shader.ID, "model");
+        if (modelLoc == GL_INVALID_VALUE)
+        {
+            std::cout << "Invalid model location" << std::endl;
+        }
+        else if (modelLoc == GL_INVALID_OPERATION)
+        {
+            std::cout << "Invalid operation" << std::endl;
+        }
+        else
+        {
+            // glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(this->model));
+            mesh.Draw();
+        }
     }
 }

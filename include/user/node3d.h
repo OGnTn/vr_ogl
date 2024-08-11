@@ -28,11 +28,11 @@ public:
     void set_scale(glm::vec3 scale);
     glm::mat4 model;
     glm::vec3 position;
-
-private:
     glm::vec3 rotation;
     glm::vec3 scale;
     std::vector<Mesh> meshes;
+
+private:
     Shader &shader;
     void update_model();
 };

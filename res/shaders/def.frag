@@ -86,7 +86,7 @@ vec4 spot_light() {
 vec4 directional_light() {
 
 
-   float ambient = 0.2f;
+   float ambient = 0.7f;
    vec3 normal = normalize(Normal);
    vec3 lightDir = normalize(vec3(1.0f, 1.0f, 0.0f));
 
@@ -98,7 +98,7 @@ vec4 directional_light() {
    float specAmount = pow(max(dot(viewDir, reflectDir), 0.0f), 16);
    float specular = specularLight * specAmount;
 
-   return (texture(diffuse0, texCoord) * (diffuse + ambient) + texture(specular0, texCoord).r * specular) * lightColor;
+   return (texture(diffuse0, texCoord) * (diffuse + ambient) + texture(specular0, texCoord).r * specular) * vec4(1.0f, 1.0f, 1.0f, 1.0f);
    }
 
 void main()
@@ -110,11 +110,13 @@ void main()
          c += point_light(i);
          
    }
+   c += directional_light();
    c.r = clamp(c.r, 0.0f, 1.0f);
    c.g = clamp(c.g, 0.0f, 1.0f);
    c.b = clamp(c.b, 0.0f, 1.0f);
    c.a = clamp(c.a, 0.0f, 1.0f);
    FragColor = c;
+   //FragColor = directional_light();
    
 	//FragColor = point_light();
 }

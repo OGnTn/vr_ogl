@@ -5,7 +5,8 @@ Mesh::Mesh(std::vector<Vertex> &vertices, std::vector<GLuint> &indices, std::vec
     this->vertices = vertices;
     this->indices = indices;
     this->textures = textures;
-    std::cout << textures.size() << std::endl;
+    // std::cout << textures.size() << std::endl;
+    this->shader = Shader("../res/shaders/def.vert", "../res/shaders/def.vert");
 
     VAO.Bind();
 
@@ -22,9 +23,9 @@ Mesh::Mesh(std::vector<Vertex> &vertices, std::vector<GLuint> &indices, std::vec
     EBO.Unbind();
 }
 
-void Mesh::Draw(Shader &shader)
+void Mesh::Draw()
 {
-    shader.Activate();
+    this->shader.Activate();
     VAO.Bind();
 
     int numDiffuse = 0;
@@ -40,7 +41,7 @@ void Mesh::Draw(Shader &shader)
         else if (type == "specular")
             number = std::to_string(numSpecular++);
 
-        textures[i].texUnit(shader, (type + number).c_str(), i);
+        textures[i].texUnit(this->shader, (type + number).c_str(), i);
         // std::cout << "Texture type: " << type << " number: " << number << std::endl;
         textures[i].Bind();
     }

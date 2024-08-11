@@ -154,8 +154,8 @@ void ModelLoader::process_external_texture(aiMaterial *mat, int slot, aiTextureT
 {
     aiString texture_file;
     mat->Get(AI_MATKEY_TEXTURE(type, 0), texture_file);
-    std::cout << "external texture" << std::endl;
-    //  if the path contains "/", assume it is an absolute path
+    // std::cout << "external texture" << std::endl;
+    //   if the path contains "/", assume it is an absolute path
 
     std::string tex_type;
     if (type == aiTextureType_DIFFUSE)
@@ -173,8 +173,7 @@ void ModelLoader::process_external_texture(aiMaterial *mat, int slot, aiTextureT
     if (strchr(texture_file.C_Str(), '/') != NULL || strchr(texture_file.C_Str(), '\\') != NULL)
     {
 
-        std::cout << "absolute texture" << std::endl;
-        std::cout << texture_file.C_Str() << std::endl;
+        // std::cout << "absolute texture" << std::endl;
 
         std::string texture_name = texture_file.C_Str();
         size_t pos = texture_name.find_last_of('/');
@@ -190,16 +189,43 @@ void ModelLoader::process_external_texture(aiMaterial *mat, int slot, aiTextureT
 
         std::string texture_path = "../res/textures/";
         texture_path += texture_name;
+        // std::cout << texture_path << std::endl;
+
+        // check if the file exists
+        std::ifstream f(texture_path.c_str());
+        if (!f.good())
+        {
+            // std::cout << "Texture file not found: " << texture_path << std::endl;
+            //  modify jpg file extension to jpeg
+            std::string::size_type pos = texture_path.rfind('.');
+            if (pos != std::string::npos)
+            {
+                texture_path.replace(pos, 4, ".jpeg");
+                // std::cout << "Trying: " << texture_path << std::endl;
+                std::ifstream f(texture_path.c_str());
+                if (!f.good())
+                {
+                    // std::cout << "Texture file not found: " << texture_path << std::endl;
+                }
+                else
+                {
+                    // std::cout << "Texture file found: " << texture_path << std::endl;
+                    Texture tex(texture_path.c_str(), tex_type.c_str(), slot, GL_RGBA, GL_UNSIGNED_BYTE);
+                    textures.push_back(tex);
+                }
+            }
+            return;
+        }
 
         Texture tex(texture_path.c_str(), tex_type.c_str(), slot, GL_RGBA, GL_UNSIGNED_BYTE);
         textures.push_back(tex);
     }
     else
     {
-        std::cout << "relative texture" << std::endl;
-        std::cout << texture_file.C_Str() << std::endl;
-        // relative filename. take the last part and look for it in ../res/textures/
-        // split the string and get the part after the last '/'
+        // std::cout << "relative texture" << std::endl;
+        // std::cout << texture_file.C_Str() << std::endl;
+        //  relative filename. take the last part and look for it in ../res/textures/
+        //  split the string and get the part after the last '/'
 
         std::string texture_path = "../res/textures/";
         texture_path += texture_file.C_Str();
@@ -211,7 +237,7 @@ void ModelLoader::process_external_texture(aiMaterial *mat, int slot, aiTextureT
 
 void ModelLoader::process_internal_texture(aiMaterial *mat, int slot, aiTextureType type, const aiScene *scene, std::vector<Texture> &textures)
 {
-    std::cout << "internal texture" << std::endl;
+    // std::cout << "internal texture" << std::endl;
     aiString texture_file;
     mat->Get(AI_MATKEY_TEXTURE(type, 0), texture_file);
 
@@ -240,7 +266,7 @@ void ModelLoader::process_internal_texture(aiMaterial *mat, int slot, aiTextureT
         int width, height, nrChannels;
         stbi_info_from_memory(rawData, t->mWidth, &width, &height, &nrChannels);
 
-        unsigned char *img = stbi_load_from_memory(rawData, t->mWidth, &width, &height, &nrChannels, 3);
+        unsigned char *img = stbi_load_from_memory(rawData, t->mWidth, &width, &height, &nrChannels, 0);
         Texture tex(img, width, height, nrChannels, tex_type.c_str(), slot, GL_RGBA, GL_UNSIGNED_BYTE);
         stbi_image_free(img);
         textures.push_back(tex);
@@ -248,7 +274,7 @@ void ModelLoader::process_internal_texture(aiMaterial *mat, int slot, aiTextureT
     else
     {
         // uncompressed texture
-        Texture tex((unsigned char *)t->pcData, t->mWidth, t->mHeight, 3, tex_type.c_str(), slot, GL_RGBA, GL_UNSIGNED_BYTE);
+        Texture tex((unsigned char *)t->pcData, t->mWidth, t->mHeight, 4, tex_type.c_str(), slot, GL_RGBA, GL_UNSIGNED_BYTE);
         textures.push_back(tex);
     }
 }

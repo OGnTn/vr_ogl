@@ -16,9 +16,10 @@ public:
     std::vector<Texture> textures;
 
     VAO VAO;
+    Shader shader;
 
     Mesh(std::vector<Vertex> &vertices, std::vector<GLuint> &indices, std::vector<Texture> &textures);
-    void Draw(Shader &shader);
+    void Draw();
 };
 
 #endif

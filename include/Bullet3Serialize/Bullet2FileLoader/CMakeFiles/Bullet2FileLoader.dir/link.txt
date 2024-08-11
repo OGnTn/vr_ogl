@@ -1,0 +1,2 @@
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar qc libBullet2FileLoader.a CMakeFiles/Bullet2FileLoader.dir/b3BulletFile.o CMakeFiles/Bullet2FileLoader.dir/b3Chunk.o CMakeFiles/Bullet2FileLoader.dir/b3DNA.o CMakeFiles/Bullet2FileLoader.dir/b3File.o CMakeFiles/Bullet2FileLoader.dir/b3Serializer.o
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib libBullet2FileLoader.a
