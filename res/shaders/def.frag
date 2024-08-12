@@ -86,7 +86,7 @@ vec4 spot_light() {
 vec4 directional_light() {
 
 
-   float ambient = 0.7f;
+   float ambient = 0.1f;
    vec3 normal = normalize(Normal);
    vec3 lightDir = normalize(vec3(1.0f, 1.0f, 0.0f));
 

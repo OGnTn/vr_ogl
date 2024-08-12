@@ -1,11 +1,12 @@
 #include "user/node3d.h"
 
-Node3D::Node3D(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, Shader &shader) : shader(shader)
+Node3D::Node3D(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, Shader &shader, std::string model_file_path) : shader(shader)
 {
     this->position = position;
     this->rotation = rotation;
     this->scale = scale;
     this->shader = shader;
+    ModelLoader::load_model(model_file_path, this->meshes);
     update_model();
 }
 
@@ -17,6 +18,7 @@ void Node3D::assign_meshes(std::vector<Mesh> meshes)
 void Node3D::set_position(glm::vec3 position)
 {
     this->position = position;
+    // std::cout << "Position: " << this->position.x << ", " << this->position.y << ", " << this->position.z << std::endl;
     update_model();
 }
 

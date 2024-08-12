@@ -9,6 +9,7 @@
 #include "user/mesh.h"
 #include "user/shader.h"
 #include "user/camera.h"
+#include "user/model_loader.h"
 
 struct vector3
 {
@@ -20,7 +21,7 @@ struct vector3
 class Node3D : public Node
 {
 public:
-    Node3D(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, Shader &shader);
+    Node3D(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, Shader &shader, std::string model_file_path);
     void assign_meshes(std::vector<Mesh> meshes);
     void draw();
     void set_position(glm::vec3 position);
