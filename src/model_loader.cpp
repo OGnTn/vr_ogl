@@ -2,6 +2,7 @@
 
 void ModelLoader::load_model(std::string file_path, std::vector<Mesh> &meshes)
 {
+    std::cout << "Loading model: " << file_path << std::endl;
     Assimp::Importer importer;
     std::vector<std::string> materials_loaded;
     const aiScene *scene = importer.ReadFile(file_path, aiProcess_Triangulate);

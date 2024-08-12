@@ -42,13 +42,13 @@ vec4 point_light(int i) {
    //float constant = 1.0f;
    float intensity = 1.0f / (lights[i].quadratic * pow(light_distance, 2) + lights[i].linear * light_distance + lights[i].constant);
 
-   float ambient = 0.2f;
+   float ambient = 0.0f;
    vec3 normal = normalize(Normal);
    vec3 lightDir = normalize(light_vector);
 
    float diffuse = max(dot(normal, lightDir), 0.0f);
 
-   float specularLight = 0.50f;
+   float specularLight = 0.5f;
    vec3 viewDir = normalize(camPos - fragPos);
    vec3 reflectDir = reflect(-lightDir, normal);
    float specAmount = pow(max(dot(viewDir, reflectDir), 0.0f), 16);

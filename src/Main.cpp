@@ -22,6 +22,9 @@ unsigned int init_ubo_camera_matrices();
 unsigned int init_ubo_point_lights();
 void update_ubo_camera_matrices(unsigned int uboCameraMatrices, Camera &camera);
 void update_ubo_point_lights(unsigned int uboPointLights, PointLight *lights, int lightCount);
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+
+Camera* main_camera;
 
 int main()
 {
@@ -38,7 +41,7 @@ int main()
 		"../res/textures/skybox/back.jpg"};
 
 	Skybox skybox = Skybox(faces);
-
+	cout << "Skybox created" << endl;
 	// Texture textures[]{
 	//	Texture("../res/textures/planks.png", "diffuse", 0, GL_RGBA, GL_UNSIGNED_BYTE),
 	Texture("../res/textures/planksSpec.png", "specular", 1, GL_RED, GL_UNSIGNED_BYTE);
@@ -48,18 +51,20 @@ int main()
 	Shader guitarShader("../res/shaders/def.vert", "../res/shaders/def.frag");
 	Shader levelShader("../res/shaders/def.vert", "../res/shaders/def.frag");
 
+
 	ModelLoader modelLoader;
 
 	float rotation = 0.0f;
 	double prevTime = glfwGetTime();
 
-	PhysicsNode3D guitar = PhysicsNode3D(glm::vec3(-3.0f, 100.0f, -2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.005f, 0.005f, 0.005f), guitarShader, "../res/models/guitar.glb", 15.0f);
+	PhysicsNode3D guitar = PhysicsNode3D(glm::vec3(-3.0f, 100.0f, -2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.005f, 0.005f, 0.005f), guitarShader, "../res/models/lightball.dae", 15.0f);
 	PhysicsNode3D level = PhysicsNode3D(glm::vec3(0.0f, -10.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(3.0f, 3.0f, 3.0f), levelShader, "../res/models/castle.obj", 0.0f);
 	dynamicsWorld->addRigidBody(level.rigidBody);
 	dynamicsWorld->addRigidBody(guitar.rigidBody);
 
-	PointLight pointLight = PointLight(glm::vec3(0.0f, -9.0f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec4(1.0f, 0.5f, 0.5f, 1.0f), .01f, 0.3f, 0.1f);
+	PointLight pointLight = PointLight(glm::vec3(0.0f, -7.0f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec4(0.2f, 0.5f, 1.0f, 1.0f), .01, 0.0001f, 0.00001f, "../res/models/lightball.dae");
 
+	cout << "objects created" << endl;
 	int lightCount = 1;
 	PointLight lights[1] = {pointLight};
 
@@ -69,6 +74,8 @@ int main()
 	glEnable(GL_DEPTH_TEST);
 
 	Camera camera(width, height, glm::vec3(0.0f, 0.0f, 2.0f));
+	main_camera = &camera;
+	cout << "camera created" << endl;
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -89,13 +96,14 @@ int main()
 		level.update();
 
 		camera.Inputs(window);
-		camera.updateMatrix(45.0f, 0.1f, 100.0f);
+		camera.updateMatrix(70.0f, 0.1f, 100.0f);
 
 		update_ubo_camera_matrices(uboCameraMatrices, camera);
 		update_ubo_point_lights(uboPointLights, lights, lightCount);
 
 		guitar.draw();
 		level.draw();
+		pointLight.draw();
 
 		skybox.draw(camera);
 
@@ -106,6 +114,14 @@ int main()
 	glfwDestroyWindow(window);
 	glfwTerminate();
 }
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+	main_camera->width = width;
+	main_camera->height = height;
+	main_camera->updateMatrix(70.0f, 0.1f, 100.0f);
+    glViewport(0, 0, width, height);
+}  
 
 void update_ubo_camera_matrices(unsigned int uboCameraMatrices, Camera &camera)
 {
@@ -215,6 +231,7 @@ GLFWwindow *init_renderer(int width, int height, const char *title)
 		glfwTerminate();
 		return NULL;
 	}
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 	// Make the window's context current
 	glfwMakeContextCurrent(window);

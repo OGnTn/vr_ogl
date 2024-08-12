@@ -1,3 +1,4 @@
 *.a
 .vscode/
 lib/
+bin/
