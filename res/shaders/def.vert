@@ -27,12 +27,12 @@ struct str_point_light
    float quadratic;
    float constant;
 };
-out str_point_light[1] lights;
+//out str_point_light[1] lights;
 
-layout(std140) uniform Lights 
-{
-   str_point_light ilights[1];
-};
+//layout(std140) uniform Lights 
+//{
+//   str_point_light ilights[1];
+//};
 
 
 
@@ -44,6 +44,6 @@ void main()
    color = aColor;
    texCoord = aTex;
    //Normal = aNormal;
-   lights = ilights;
+   //lights = ilights;
    Normal = vec3(model * vec4(aNormal, 1.0));
 }

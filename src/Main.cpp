@@ -19,12 +19,12 @@ unsigned int loadCubemap(vector<string> faces);
 btDiscreteDynamicsWorld *init_physics();
 GLFWwindow *init_renderer(int width, int height, const char *title);
 unsigned int init_ubo_camera_matrices();
-unsigned int init_ubo_point_lights();
+unsigned int init_ubo_point_lights(int lightCount);
 void update_ubo_camera_matrices(unsigned int uboCameraMatrices, Camera &camera);
-void update_ubo_point_lights(unsigned int uboPointLights, PointLight *lights, int lightCount);
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void update_ubo_point_lights(unsigned int uboPointLights, PointLight *lights[], int lightCount);
+void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
-Camera* main_camera;
+Camera *main_camera;
 
 int main()
 {
@@ -51,25 +51,27 @@ int main()
 	Shader guitarShader("../res/shaders/def.vert", "../res/shaders/def.frag");
 	Shader levelShader("../res/shaders/def.vert", "../res/shaders/def.frag");
 
-
 	ModelLoader modelLoader;
 
 	float rotation = 0.0f;
 	double prevTime = glfwGetTime();
 
-	PhysicsNode3D guitar = PhysicsNode3D(glm::vec3(-3.0f, 100.0f, -2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.005f, 0.005f, 0.005f), guitarShader, "../res/models/lightball.dae", 15.0f);
+	PhysicsNode3D guitar = PhysicsNode3D(glm::vec3(-3.0f, 10.0f, -2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.01f, 0.01f, 0.01f), guitarShader, "../res/models/guitar.glb", 1.0f);
 	PhysicsNode3D level = PhysicsNode3D(glm::vec3(0.0f, -10.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(3.0f, 3.0f, 3.0f), levelShader, "../res/models/castle.obj", 0.0f);
 	dynamicsWorld->addRigidBody(level.rigidBody);
 	dynamicsWorld->addRigidBody(guitar.rigidBody);
 
-	PointLight pointLight = PointLight(glm::vec3(0.0f, -7.0f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec4(0.2f, 0.5f, 1.0f, 1.0f), .01, 0.0001f, 0.00001f, "../res/models/lightball.dae");
+	PointLight pointLight = PointLight(glm::vec3(0.0f, -7.0f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec4(0.0f, 0.0f, 1.0f, 1.0f), .1, 0.01f, 0.001f, "../res/models/lightball.dae");
+	PointLight pointLight2 = PointLight(glm::vec3(1.0f, -8.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), .1, 0.01f, 0.001f, "../res/models/lightball.dae");
 
 	cout << "objects created" << endl;
-	int lightCount = 1;
-	PointLight lights[1] = {pointLight};
+	const int lightCount = 2;
+	PointLight *lights[lightCount] = {
+		&pointLight,
+		&pointLight2};
 
 	unsigned int uboCameraMatrices = init_ubo_camera_matrices();
-	unsigned int uboPointLights = init_ubo_point_lights();
+	unsigned int uboPointLights = init_ubo_point_lights(lightCount);
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -83,12 +85,18 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		double crntTime = glfwGetTime();
-		// if (crntTime - prevTime >= 1 / 60)
-		//{
-		//	rotation += 0.5f;
-		//	guitar.set_rotation(glm::vec3(0.0f, rotation, 0.0f));
-		//	prevTime = crntTime;
-		// }
+		if (crntTime - prevTime >= 1 / 60)
+		{
+			// Make pointlight cycle between red and blue
+			// pointLight.lightColor = glm::vec4(1.0f + 0.5f * sin(crntTime), 0.5f, 1.0f - 1.0f * sin(crntTime), 1.0f);
+			// pointLight2.lightColor = glm::vec4(0.5f, 1.0f - 1.0f * sin(crntTime), 1.0f + 0.5f * sin(crntTime), 1.0f);
+
+			// Make pointlight fly back and forth
+			pointLight.set_position(glm::vec3(pointLight.position.x - 5 * cos(crntTime) / 60.0f, pointLight.position.y + 2 * sin(crntTime) / 60.0f, pointLight.position.z + 5 * sin(crntTime) / 60.0f));
+			pointLight2.set_position(glm::vec3(pointLight2.position.x + 5 * cos(crntTime) / 60.0f, pointLight2.position.y - 2 * sin(crntTime) / 60.0f, pointLight2.position.z - 5 * sin(crntTime) / 60.0f));
+			cout << "Pointlight position: " << glm::to_string(pointLight.position) << endl;
+			prevTime = crntTime;
+		}
 
 		dynamicsWorld->stepSimulation(1 / 60.0f, 10, 1 / 60.0f);
 
@@ -104,6 +112,7 @@ int main()
 		guitar.draw();
 		level.draw();
 		pointLight.draw();
+		pointLight2.draw();
 
 		skybox.draw(camera);
 
@@ -115,13 +124,13 @@ int main()
 	glfwTerminate();
 }
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 {
 	main_camera->width = width;
 	main_camera->height = height;
 	main_camera->updateMatrix(70.0f, 0.1f, 100.0f);
-    glViewport(0, 0, width, height);
-}  
+	glViewport(0, 0, width, height);
+}
 
 void update_ubo_camera_matrices(unsigned int uboCameraMatrices, Camera &camera)
 {
@@ -133,19 +142,21 @@ void update_ubo_camera_matrices(unsigned int uboCameraMatrices, Camera &camera)
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
-void update_ubo_point_lights(unsigned int uboPointLights, PointLight *lights, int lightCount)
+void update_ubo_point_lights(unsigned int uboPointLights, PointLight *lights[], int lightCount)
 {
+	glBindBuffer(GL_UNIFORM_BUFFER, uboPointLights);
 	for (int i = 0; i < lightCount; i++)
 	{
-		glBindBuffer(GL_UNIFORM_BUFFER, uboPointLights);
-		glBufferSubData(GL_UNIFORM_BUFFER, i * (sizeof(glm::vec3) + sizeof(glm::vec4) + 3 * sizeof(float)), sizeof(glm::vec3), glm::value_ptr(lights[i].position));
-		glBufferSubData(GL_UNIFORM_BUFFER, i * (sizeof(glm::vec3) + sizeof(glm::vec4) + 3 * sizeof(float)) + sizeof(glm::vec3), sizeof(glm::vec4), glm::value_ptr(lights[i].lightColor));
-		glBufferSubData(GL_UNIFORM_BUFFER, i * (sizeof(glm::vec3) + sizeof(glm::vec4) + 3 * sizeof(float)) + sizeof(glm::vec3) + sizeof(glm::vec4), sizeof(float), &lights[i].linear);
-		glBufferSubData(GL_UNIFORM_BUFFER, i * (sizeof(glm::vec3) + sizeof(glm::vec4) + 3 * sizeof(float)) + sizeof(glm::vec3) + sizeof(glm::vec4) + sizeof(float), sizeof(float), &lights[i].quadratic);
-		glBufferSubData(GL_UNIFORM_BUFFER, i * (sizeof(glm::vec3) + sizeof(glm::vec4) + 3 * sizeof(float)) + sizeof(glm::vec3) + sizeof(glm::vec4) + 2 * sizeof(float), sizeof(float), &lights[i].constant);
-
-		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+		// cout << "Updating light " << i << endl;
+		// cout << "Position: " << glm::to_string(lights[i].position) << endl;
+		size_t baseOffset = i * (sizeof(glm::vec3) + sizeof(glm::vec4) + 3 * sizeof(float) + 8); // 12 bytes padding
+		glBufferSubData(GL_UNIFORM_BUFFER, baseOffset, sizeof(glm::vec3), glm::value_ptr(glm::vec3(lights[i]->position.x, lights[i]->position.y, lights[i]->position.z)));
+		glBufferSubData(GL_UNIFORM_BUFFER, baseOffset + 16, sizeof(glm::vec4), glm::value_ptr(lights[i]->lightColor));
+		glBufferSubData(GL_UNIFORM_BUFFER, baseOffset + 32, sizeof(float), &lights[i]->linear);
+		glBufferSubData(GL_UNIFORM_BUFFER, baseOffset + 36, sizeof(float), &lights[i]->quadratic);
+		glBufferSubData(GL_UNIFORM_BUFFER, baseOffset + 40, sizeof(float), &lights[i]->constant);
 	}
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 unsigned int init_ubo_camera_matrices()
@@ -160,15 +171,23 @@ unsigned int init_ubo_camera_matrices()
 	return uboCameraMatrices;
 }
 
-unsigned int init_ubo_point_lights()
+unsigned int init_ubo_point_lights(int lightCount)
 {
+
+	// Offset for each element in the buffer.
+	size_t positionOffset = 0;	 // Offset 0
+	size_t colorOffset = 16;	 // Offset 16
+	size_t linearOffset = 32;	 // Offset 32
+	size_t quadraticOffset = 36; // Offset 36
+	size_t constantOffset = 40;	 // Offset 40
+	size_t size = (positionOffset + colorOffset + linearOffset + quadraticOffset + constantOffset) * lightCount;
 	unsigned int pointLights;
 	glGenBuffers(1, &pointLights);
 
 	glBindBuffer(GL_UNIFORM_BUFFER, pointLights);
-	glBufferData(GL_UNIFORM_BUFFER, (sizeof(glm::vec3) + sizeof(glm::vec4) + 3 * sizeof(float)) * 1, NULL, GL_STATIC_DRAW);
+	glBufferData(GL_UNIFORM_BUFFER, size, NULL, GL_STATIC_DRAW);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
-	glBindBufferRange(GL_UNIFORM_BUFFER, 1, pointLights, 0, (sizeof(glm::vec3) + sizeof(glm::vec4) + 3 * sizeof(float)) * 1);
+	glBindBufferRange(GL_UNIFORM_BUFFER, 1, pointLights, 0, size);
 	return pointLights;
 }
 

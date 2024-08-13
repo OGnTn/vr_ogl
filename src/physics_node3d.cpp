@@ -35,7 +35,7 @@ btRigidBody *PhysicsNode3D::create_rigid_body(btCollisionShape *collisionShape)
         collisionShape->calculateLocalInertia(_mass, localInertia);
     }
 
-    localInertia /= 1000.0f;
+    // localInertia /= 10.0f;
     std::cout << "Local inertia: " << localInertia.getX() << ", " << localInertia.getY() << ", " << localInertia.getZ() << std::endl;
     btDefaultMotionState *motionState = new btDefaultMotionState(transform);
     btRigidBody::btRigidBodyConstructionInfo rigidBodyCI(this->mass, motionState, collisionShape, localInertia);
@@ -53,7 +53,8 @@ void PhysicsNode3D::update()
     btQuaternion rotation = transform.getRotation();
     float x, y, z;
     rotation.getEulerZYX(z, y, x);
-    this->set_rotation(glm::vec3(x, y, z));
+    // this->set_rotation(glm::vec3(x, y, z));
+    this->set_rotation(glm::vec3(glm::degrees(x), glm::degrees(y), glm::degrees(z)));
 
     // std::cout << "Rotation: " << rotation.getX() << ", " << rotation.getY() << ", " << rotation.getZ() << std::endl;
 }

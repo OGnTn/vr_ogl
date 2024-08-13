@@ -17,7 +17,9 @@ void Node3D::assign_meshes(std::vector<Mesh> meshes)
 
 void Node3D::set_position(glm::vec3 position)
 {
-    this->position = position;
+    this->position.x = position.x;
+    this->position.y = position.y;
+    this->position.z = position.z;
     // std::cout << "Position: " << this->position.x << ", " << this->position.y << ", " << this->position.z << std::endl;
     update_model();
 }

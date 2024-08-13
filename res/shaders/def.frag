@@ -8,17 +8,22 @@ in vec3 Normal;
 in vec3 fragPos;
 in vec3 camPos;
 
-
+const int NR_POINT_LIGHTS = 2;
 
 struct str_point_light
 {
-   vec3 position;
-   vec4 color;
-   float linear;
-   float quadratic;
-   float constant;
+   vec3 position; //16 bytes
+   vec4 color; //16 bytes
+   float linear; //4 bytes
+   float quadratic; //4 bytes
+   float constant;   //4 bytes
 };
-in str_point_light[1] lights;
+
+layout(std140) uniform Lights 
+{
+   str_point_light[NR_POINT_LIGHTS] lights;
+};
+//in str_point_light[1] lights;
 
 //layout(std140) uniform Lights 
 //{
@@ -42,13 +47,13 @@ vec4 point_light(int i) {
    //float constant = 1.0f;
    float intensity = 1.0f / (lights[i].quadratic * pow(light_distance, 2) + lights[i].linear * light_distance + lights[i].constant);
 
-   float ambient = 0.0f;
-   vec3 normal = normalize(Normal);
+   float ambient = 0.2f;
+   vec3 normal = normalize(-Normal);
    vec3 lightDir = normalize(light_vector);
 
    float diffuse = max(dot(normal, lightDir), 0.0f);
 
-   float specularLight = 0.5f;
+   float specularLight = 0.0f;
    vec3 viewDir = normalize(camPos - fragPos);
    vec3 reflectDir = reflect(-lightDir, normal);
    float specAmount = pow(max(dot(viewDir, reflectDir), 0.0f), 16);
@@ -86,7 +91,7 @@ vec4 spot_light() {
 vec4 directional_light() {
 
 
-   float ambient = 0.1f;
+   float ambient = 0.5f;
    vec3 normal = normalize(Normal);
    vec3 lightDir = normalize(vec3(1.0f, 1.0f, 0.0f));
 
@@ -103,11 +108,12 @@ vec4 directional_light() {
 
 void main()
 {
-   vec4 c = vec4(0.0f, 0.0f, 0.0f, 0.0f);
+   vec4 c = vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
-   for (int i = 0; i < 1; i++)
+   for (int i = 0; i < NR_POINT_LIGHTS; i++)
    {
-         c += point_light(i);
+      c += point_light(i);
+
          
    }
    c += directional_light();
