@@ -1,9 +1,9 @@
 #include "user/texture.h"
 
-Texture::Texture(const char *image, const char *texType, GLuint slot, GLenum format, GLenum pixelType)
+Texture::Texture(const char *image, const char *tex_type, GLuint slot, GLenum format, GLenum pixel_type)
 {
 
-    type = texType;
+    type = tex_type;
     int width, height, nrChannels;
     stbi_set_flip_vertically_on_load(true);
     unsigned char *data = stbi_load(image, &width, &height, &nrChannels, 4);
@@ -22,7 +22,7 @@ Texture::Texture(const char *image, const char *texType, GLuint slot, GLenum for
 
     if (data)
     {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, format, pixelType, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, format, pixel_type, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     }
     else
@@ -33,9 +33,9 @@ Texture::Texture(const char *image, const char *texType, GLuint slot, GLenum for
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-Texture::Texture(unsigned char *data, int width, int height, int numColCh, const char *texType, GLuint slot, GLenum format, GLenum pixelType)
+Texture::Texture(unsigned char *data, int width, int height, int channel_count, const char *tex_type, GLuint slot, GLenum format, GLenum pixel_type)
 {
-    type = texType;
+    type = tex_type;
     glGenTextures(1, &ID);
     glActiveTexture(GL_TEXTURE0 + slot);
     unit = slot;
@@ -47,7 +47,7 @@ Texture::Texture(unsigned char *data, int width, int height, int numColCh, const
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-    if (numColCh == 4)
+    if (channel_count == 4)
         glTexImage2D(
             GL_TEXTURE_2D,
             0,
@@ -58,7 +58,7 @@ Texture::Texture(unsigned char *data, int width, int height, int numColCh, const
             GL_RGBA,
             GL_UNSIGNED_BYTE,
             data);
-    else if (numColCh == 3)
+    else if (channel_count == 3)
         glTexImage2D(
             GL_TEXTURE_2D,
             0,
@@ -69,7 +69,7 @@ Texture::Texture(unsigned char *data, int width, int height, int numColCh, const
             GL_RGB,
             GL_UNSIGNED_BYTE,
             data);
-    else if (numColCh == 1)
+    else if (channel_count == 1)
         glTexImage2D(
             GL_TEXTURE_2D,
             0,

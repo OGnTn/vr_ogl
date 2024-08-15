@@ -16,7 +16,7 @@ public:
 private:
     Shader shader;
     unsigned int VAO, VBO;
-    static unsigned int loadCubemap(std::vector<std::string> faces);
+    static unsigned int load_cubemap(std::vector<std::string> faces);
 };
 
 #endif

@@ -8,20 +8,20 @@
 
 struct Vertex
 {
-    glm::vec3 Position;
-    glm::vec3 Normal;
-    glm::vec3 Color;
-    glm::vec2 TexCoords;
+    glm::vec3 position;
+    glm::vec3 normal;
+    glm::vec3 color;
+    glm::vec2 tex_coords;
 };
 
 class VBO
 {
-    public:
-        GLuint ID;
-        VBO(std::vector<Vertex>& vertices);
-        void Bind();
-        void Unbind();
-        void Delete();
+public:
+    GLuint ID;
+    VBO(std::vector<Vertex> &vertices);
+    void Bind();
+    void Unbind();
+    void Delete();
 };
 
 #endif

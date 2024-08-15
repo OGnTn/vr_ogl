@@ -14,8 +14,8 @@ public:
     const char *type;
     GLuint unit;
 
-    Texture(const char *image, const char *texType, GLuint slot, GLenum format, GLenum pixelType);
-    Texture(unsigned char *data, int width, int height, int nrColCh, const char *texType, GLuint slot, GLenum format, GLenum pixelType);
+    Texture(const char *image, const char *tex_type, GLuint slot, GLenum format, GLenum pixel_type);
+    Texture(unsigned char *data, int width, int height, int channel_count, const char *tex_type, GLuint slot, GLenum format, GLenum pixel_type);
     Texture();
 
     void texUnit(Shader &shader, const char *uniform, GLuint unit);

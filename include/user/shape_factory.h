@@ -7,8 +7,8 @@
 class ShapeFactory
 {
 public:
-    static btConvexHullShape *createConvexHullShape(std::vector<Mesh> meshes);
-    static btBvhTriangleMeshShape *createBvhTriangleMeshShape(std::vector<Mesh> meshes);
+    static btConvexHullShape *create_convex_hull_shape(std::vector<Mesh> meshes);
+    static btBvhTriangleMeshShape *create_bvh_triangle_mesh_shape(std::vector<Mesh> meshes);
 };
 
 #endif

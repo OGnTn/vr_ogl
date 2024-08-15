@@ -17,57 +17,57 @@ std::string get_file_contents(const char *filename)
 }
 Shader::Shader()
 {
-    std::string vertexCode = get_file_contents("../res/shaders/def.vert");
-    std::string fragmentCode = get_file_contents("../res/shaders/def.vert");
+    std::string vertex_code = get_file_contents("../res/shaders/def.vert");
+    std::string fragment_code = get_file_contents("../res/shaders/def.vert");
 
-    const char *vertexShaderCode = vertexCode.c_str();
-    const char *fragmentShaderCode = fragmentCode.c_str();
+    const char *vertex_shader_code = vertex_code.c_str();
+    const char *fragment_shader_code = fragment_code.c_str();
 
-    GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderCode, NULL);
-    glCompileShader(vertexShader);
+    GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertex_shader, 1, &vertex_shader_code, NULL);
+    glCompileShader(vertex_shader);
 
-    GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderCode, NULL);
-    glCompileShader(fragmentShader);
+    GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragment_shader, 1, &fragment_shader_code, NULL);
+    glCompileShader(fragment_shader);
 
     ID = glCreateProgram();
-    glAttachShader(ID, vertexShader);
-    glAttachShader(ID, fragmentShader);
+    glAttachShader(ID, vertex_shader);
+    glAttachShader(ID, fragment_shader);
     glLinkProgram(ID);
 
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
+    glDeleteShader(vertex_shader);
+    glDeleteShader(fragment_shader);
 }
 
-Shader::Shader(const char *vertexFile, const char *fragmentFile)
+Shader::Shader(const char *vertex_file, const char *fragment_file)
 {
-    std::string vertexCode = get_file_contents(vertexFile);
-    std::string fragmentCode = get_file_contents(fragmentFile);
+    std::string vertex_code = get_file_contents(vertex_file);
+    std::string fragment_code = get_file_contents(fragment_file);
 
-    const char *vertexShaderCode = vertexCode.c_str();
-    const char *fragmentShaderCode = fragmentCode.c_str();
+    const char *vertex_shader_code = vertex_code.c_str();
+    const char *fragment_shader_code = fragment_code.c_str();
 
-    GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderCode, NULL);
-    glCompileShader(vertexShader);
+    GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertex_shader, 1, &vertex_shader_code, NULL);
+    glCompileShader(vertex_shader);
 
-    GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderCode, NULL);
-    glCompileShader(fragmentShader);
+    GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragment_shader, 1, &fragment_shader_code, NULL);
+    glCompileShader(fragment_shader);
 
     ID = glCreateProgram();
-    glAttachShader(ID, vertexShader);
-    glAttachShader(ID, fragmentShader);
+    glAttachShader(ID, vertex_shader);
+    glAttachShader(ID, fragment_shader);
     glLinkProgram(ID);
 
-    unsigned int uniformBlockIndex = glGetUniformBlockIndex(ID, "CameraMatrices");
-    glUniformBlockBinding(ID, uniformBlockIndex, 0);
-    unsigned int uniformBlockIndex2 = glGetUniformBlockIndex(ID, "Lights");
-    glUniformBlockBinding(ID, uniformBlockIndex2, 1);
+    unsigned int uniform_block_index = glGetUniformBlockIndex(ID, "CameraMatrices");
+    glUniformBlockBinding(ID, uniform_block_index, 0);
+    unsigned int uniform_block_index2 = glGetUniformBlockIndex(ID, "Lights");
+    glUniformBlockBinding(ID, uniform_block_index2, 1);
 
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
+    glDeleteShader(vertex_shader);
+    glDeleteShader(fragment_shader);
 }
 
 void Shader::Activate()

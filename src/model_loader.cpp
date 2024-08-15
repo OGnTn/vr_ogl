@@ -75,7 +75,7 @@ Mesh ModelLoader::process_mesh(aiMesh *mesh, const aiScene *scene, const aiMatri
         vector.y = mesh->mVertices[i].y;
         vector.z = mesh->mVertices[i].z;
         apply_transform(vector, mesh_transform);
-        vertex.Position = vector;
+        vertex.position = vector;
 
         if (mesh->mNormals)
         {
@@ -83,7 +83,7 @@ Mesh ModelLoader::process_mesh(aiMesh *mesh, const aiScene *scene, const aiMatri
             vector.y = mesh->mNormals[i].y;
             vector.z = mesh->mNormals[i].z;
             apply_transform(vector, mesh_transform);
-            vertex.Normal = vector;
+            vertex.normal = vector;
         }
 
         for (unsigned int j = 0; j < AI_MAX_NUMBER_OF_TEXTURECOORDS; j++)
@@ -93,10 +93,10 @@ Mesh ModelLoader::process_mesh(aiMesh *mesh, const aiScene *scene, const aiMatri
                 glm::vec2 vec;
                 vec.x = mesh->mTextureCoords[j][i].x;
                 vec.y = mesh->mTextureCoords[j][i].y;
-                vertex.TexCoords = vec;
+                vertex.tex_coords = vec;
                 break; // Use the first available set
             }
-            vertex.TexCoords = glm::vec2(0.0f, 0.0f);
+            vertex.tex_coords = glm::vec2(0.0f, 0.0f);
         }
         vertices.push_back(vertex);
     }

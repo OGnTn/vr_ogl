@@ -15,10 +15,10 @@
 class Camera
 {
 public:
-    glm::vec3 Position;
-    glm::vec3 Orientation = glm::vec3(0.0f, 0.0f, -1.0f);
-    glm::vec3 Up = glm::vec3(0.0f, 1.0f, 0.0f);
-    glm::mat4 cameraMatrix = glm::mat4(1.0f);
+    glm::vec3 position;
+    glm::vec3 orientation = glm::vec3(0.0f, 0.0f, -1.0f);
+    glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
+    glm::mat4 camera_matrix = glm::mat4(1.0f);
     glm::mat4 view = glm::mat4(1.0f);
     glm::mat4 projection = glm::mat4(1.0f);
 
@@ -32,8 +32,8 @@ public:
 
     Camera(int width, int height, glm::vec3 position);
 
-    void updateMatrix(float FOVdeg, float nearPlane, float farPlane);
-    void Matrix(Shader &shader, const char *uniform);
-    void Inputs(GLFWwindow *window);
+    void update_matrix(float FOV_deg, float near_plane, float far_plane);
+    void matrix(Shader &shader, const char *uniform);
+    void inputs(GLFWwindow *window);
 };
 #endif

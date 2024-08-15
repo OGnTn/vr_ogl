@@ -3,9 +3,9 @@
 
 Skybox::Skybox(std::vector<std::string> faces) : shader("../res/shaders/skybox.vert", "../res/shaders/skybox.frag")
 {
-    this->texture_id = loadCubemap(faces);
+    this->texture_id = load_cubemap(faces);
 
-    float skyboxVertices[] = {
+    float skybox_vertices[] = {
         // positions
         -1.0f, 1.0f, -1.0f,
         -1.0f, -1.0f, -1.0f,
@@ -54,7 +54,7 @@ Skybox::Skybox(std::vector<std::string> faces) : shader("../res/shaders/skybox.v
     glGenBuffers(1, &VBO);
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(skybox_vertices), &skybox_vertices, GL_STATIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
 
@@ -69,16 +69,16 @@ Skybox::Skybox(std::vector<std::string> faces) : shader("../res/shaders/skybox.v
     glUniform1i(glGetUniformLocation(shader.ID, "skybox"), 0);
 }
 
-unsigned int Skybox::loadCubemap(std::vector<std::string> faces)
+unsigned int Skybox::load_cubemap(std::vector<std::string> faces)
 {
     unsigned int textureID;
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
 
-    int width, height, nrChannels;
+    int width, height, channel_count;
     for (unsigned int i = 0; i < faces.size(); i++)
     {
-        unsigned char *data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
+        unsigned char *data = stbi_load(faces[i].c_str(), &width, &height, &channel_count, 0);
         if (data)
         {
             glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
