@@ -1,6 +1,6 @@
 #include "user/physics_node3d.h"
 
-PhysicsNode3D::PhysicsNode3D(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, Shader &shader, std::string model_file_path, float mass) : Node3D(position, rotation, scale, shader, model_file_path)
+PhysicsNode3D::PhysicsNode3D(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, Shader &shader, std::string model_file_path, float mass, bool invert_normals) : Node3D(position, rotation, scale, shader, model_file_path, invert_normals)
 {
     this->mass = mass;
     if (this->mass != 0.0f)

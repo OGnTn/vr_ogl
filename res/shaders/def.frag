@@ -7,6 +7,7 @@ in vec2 texCoord;
 in vec3 Normal;
 in vec3 fragPos;
 in vec3 camPos;
+in vec4 fragPosLight;
 
 const int NR_POINT_LIGHTS = 2;
 
@@ -32,6 +33,7 @@ layout(std140) uniform Lights
 
 uniform sampler2D diffuse0;
 uniform sampler2D specular0;
+uniform sampler2D shadowMap;
 
 uniform vec4 lightColor;
 uniform vec3 lightPos;
@@ -47,7 +49,7 @@ vec4 point_light(int i) {
    //float constant = 1.0f;
    float intensity = 1.0f / (lights[i].quadratic * pow(light_distance, 2) + lights[i].linear * light_distance + lights[i].constant);
 
-   float ambient = 0.2f;
+   float ambient = 0.0f;
    vec3 normal = normalize(-Normal);
    vec3 lightDir = normalize(light_vector);
 
@@ -89,21 +91,57 @@ vec4 spot_light() {
    }
 
 vec4 directional_light() {
-
-
-   float ambient = 0.5f;
-   vec3 normal = normalize(Normal);
-   vec3 lightDir = normalize(vec3(1.0f, 1.0f, 0.0f));
+   float ambient = 0.3f;
+   vec3 normal = normalize(-Normal);
+   vec3 lightDir = normalize(vec3(0.5f, 0.5f, 0.5f));
 
    float diffuse = max(dot(normal, lightDir), 0.0f);
 
-   float specularLight = 0.50f;
-   vec3 viewDir = normalize(camPos - fragPos);
-   vec3 reflectDir = reflect(-lightDir, normal);
-   float specAmount = pow(max(dot(viewDir, reflectDir), 0.0f), 16);
-   float specular = specularLight * specAmount;
+   float specular = 0.0f;
+   if (diffuse != 0.0f) {
+      float specularLight = 0.3f;
+      vec3 viewDir = normalize(camPos - fragPos);
+      vec3 reflectDir = reflect(-lightDir, normal);
+      float specAmount = pow(max(dot(viewDir, reflectDir), 0.0f), 16);
+      specular = specularLight * specAmount;
+   }
 
-   return (texture(diffuse0, texCoord) * (diffuse + ambient) + texture(specular0, texCoord).r * specular) * vec4(1.0f, 1.0f, 1.0f, 1.0f);
+   float shadow = 0.0f;
+	// Sets lightCoords to cull space
+	vec3 lightCoords = fragPosLight.xyz / fragPosLight.w;
+	if(lightCoords.z <= 1.0f)
+	{
+		// Get from [-1, 1] range to [0, 1] range just like the shadow map
+		lightCoords = (lightCoords + 1.0f) / 2.0f;
+      float closestDepth = texture(shadowMap, lightCoords.xy).r;
+		float currentDepth = lightCoords.z;
+      if(currentDepth > closestDepth) {
+         shadow = 1.0f;
+      }
+		// Prevents shadow acne
+		float bias = max(0.013f * (1.0f - dot(normal, lightDir)), 0.02f);
+
+		// Smoothens out the shadows
+		int sampleRadius = 2;
+		vec2 pixelSize = 1.0 / textureSize(shadowMap, 0);
+		for(int y = -sampleRadius; y <= sampleRadius; y++)
+		{
+		    for(int x = -sampleRadius; x <= sampleRadius; x++)
+		    {
+		      float closestDepth = texture(shadowMap, lightCoords.xy + vec2(x, y) * pixelSize).r;
+				if (currentDepth > closestDepth + bias)
+					shadow += 1.0f;  
+		    }    
+		}
+		// Get average shadow
+		shadow /= pow((sampleRadius * 2 + 1), 2);
+	}
+   
+   
+
+   return (texture(diffuse0, texCoord) * (diffuse * (1.0f - shadow) + ambient) + texture(specular0, texCoord).r * specular  * (1.0f - shadow)) * vec4(1.0f, 1.0f, 1.0f, 1.0f);
+   //return texture(shadowMap, lightCoords.xy);
+   //return texture(diffuse0, texCoord);
    }
 
 void main()

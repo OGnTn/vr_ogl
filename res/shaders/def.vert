@@ -9,7 +9,9 @@ out vec3 Normal;
 out vec3 color;
 out vec2 texCoord;
 out vec3 camPos;
+out vec4 fragPosLight;
 
+uniform mat4 lightProjection;
 uniform mat4 camMatrix;
 uniform mat4 model;
 
@@ -46,4 +48,6 @@ void main()
    //Normal = aNormal;
    //lights = ilights;
    Normal = vec3(model * vec4(aNormal, 1.0));
+   //fragPosLight = vec4(0.0f, 0.0f, 0.0f, 0.0f);
+   fragPosLight = lightProjection * vec4(fragPos, 1.0f);
 }

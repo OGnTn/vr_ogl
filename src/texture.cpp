@@ -46,6 +46,7 @@ Texture::Texture(unsigned char *data, int width, int height, int channel_count, 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    std::cout << "channelc: " << channel_count << std::endl;
 
     if (channel_count == 4)
         glTexImage2D(
@@ -92,12 +93,22 @@ void Texture::texUnit(Shader &shader, const char *uniform, GLuint unit)
     GLuint texUni = glGetUniformLocation(shader.ID, uniform);
     shader.Activate();
     glUniform1i(texUni, unit);
+    GLenum error = glGetError();
+    if (error != 0)
+    {
+        std::cout << "tex unit: " << error << std::endl;
+    }
 }
 
 void Texture::Bind()
 {
     glActiveTexture(GL_TEXTURE0 + unit);
     glBindTexture(GL_TEXTURE_2D, ID);
+    GLenum error = glGetError();
+    if (error != 0)
+    {
+        std::cout << "tex bind: " << error << std::endl;
+    }
 }
 
 void Texture::Unbind()

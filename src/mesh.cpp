@@ -5,7 +5,7 @@ Mesh::Mesh(std::vector<Vertex> &vertices, std::vector<GLuint> &indices, std::vec
     this->vertices = vertices;
     this->indices = indices;
     this->textures = textures;
-    // std::cout << textures.size() << std::endl;
+    std::cout << textures.size() << std::endl;
     this->shader = Shader("../res/shaders/def.vert", "../res/shaders/def.vert");
 
     VAO.Bind();
@@ -23,9 +23,23 @@ Mesh::Mesh(std::vector<Vertex> &vertices, std::vector<GLuint> &indices, std::vec
     EBO.Unbind();
 }
 
-void Mesh::Draw()
+void Mesh::update_shadow_uniforms(glm::mat4 light_projection_matrix, GLuint shadow_map, Shader &shader)
 {
-    this->shader.Activate();
+    shader.Activate();
+    glUniformMatrix4fv(glGetUniformLocation(shader.ID, "lightProjection"), 1, GL_FALSE, glm::value_ptr(light_projection_matrix));
+    glUniform1i(glGetUniformLocation(shader.ID, "shadowMap"), 2);
+    glActiveTexture(GL_TEXTURE0 + 2);
+    glBindTexture(GL_TEXTURE_2D, shadow_map);
+    GLenum error = glGetError();
+    if (error != 0)
+    {
+        std::cout << "shadow tex: " << error << std::endl;
+    }
+}
+
+void Mesh::Draw(glm::mat4 model, Shader &shader)
+{
+    // this->shader.Activate();
     VAO.Bind();
 
     int numDiffuse = 0;
@@ -41,11 +55,65 @@ void Mesh::Draw()
         else if (type == "specular")
             number = std::to_string(numSpecular++);
 
-        textures[i].texUnit(this->shader, (type + number).c_str(), i);
+        textures[i].texUnit(shader, (type + number).c_str(), i);
         // std::cout << "Texture type: " << type << " number: " << number << std::endl;
         textures[i].Bind();
+        GLenum error = glGetError();
+        if (error != 0)
+        {
+            std::cout << "mesh bind tex  " << i << error << std::endl;
+        }
     }
+    // << glGetError() << std::endl;
     // glUniform3f(glGetUniformLocation(shader.ID, "camPos"), camera.Position.x, camera.Position.y, camera.Position.z);
     // camera.Matrix(shader, "camMatrix");
     glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+    GLenum error = glGetError();
+    if (error != 0)
+    {
+        std::cout << "mesh draw: " << error << std::endl;
+    }
+}
+
+void Mesh::Draw(Shader &shader, Camera &camera, glm::mat4 model)
+{
+    // print the model matrix
+    // std::cout << glm::to_string(model) << std::endl;
+    shader.Activate();
+    GLuint modelLoc = glGetUniformLocation(shader.ID, "model");
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+    GLenum error = glGetError();
+    if (error != 0)
+    {
+        std::cout << "mesh model uniform: " << error << std::endl;
+    }
+    VAO.Bind();
+
+    int numDiffuse = 0;
+    int numSpecular = 0;
+
+    for (unsigned int i = 0; i < textures.size(); i++)
+    {
+        std::string number;
+        std::string type = textures[i].type;
+
+        if (type == "diffuse")
+            number = std::to_string(numDiffuse++);
+        else if (type == "specular")
+            number = std::to_string(numSpecular++);
+
+        textures[i].texUnit(shader, (type + number).c_str(), i);
+        // std::cout << "Texture type: " << type << " number: " << number << std::endl;
+        textures[i].Bind();
+        // std::cout << "Mesh bind texture " << i << ": " << glGetError() << std::endl;
+    }
+
+    // glUniform3f(glGetUniformLocation(shader.ID, "camPos"), camera.Position.x, camera.Position.y, camera.Position.z);
+    // camera.Matrix(shader, "camMatrix");
+    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+    error = glGetError();
+    if (error != 0)
+    {
+        std::cout << "mesh draw2: " << error << std::endl;
+    }
 }

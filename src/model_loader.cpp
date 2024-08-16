@@ -1,6 +1,6 @@
 #include "user/model_loader.h"
 
-void ModelLoader::load_model(std::string file_path, std::vector<Mesh> &meshes)
+void ModelLoader::load_model(std::string file_path, std::vector<Mesh> &meshes, bool invert_normals)
 {
     std::cout << "Loading model: " << file_path << std::endl;
     Assimp::Importer importer;
@@ -14,10 +14,10 @@ void ModelLoader::load_model(std::string file_path, std::vector<Mesh> &meshes)
     }
 
     aiMatrix4x4 identity_matrix; // Identity matrix for root node
-    process_node(scene->mRootNode, scene, meshes, materials_loaded, identity_matrix);
+    process_node(scene->mRootNode, scene, meshes, materials_loaded, identity_matrix, invert_normals);
 }
 
-void ModelLoader::process_node(aiNode *node, const aiScene *scene, std::vector<Mesh> &meshes, std::vector<std::string> &materials_loaded, const aiMatrix4x4 &parent_transformation)
+void ModelLoader::process_node(aiNode *node, const aiScene *scene, std::vector<Mesh> &meshes, std::vector<std::string> &materials_loaded, const aiMatrix4x4 &parent_transformation, bool invert_normals)
 {
     aiMatrix4x4 node_transformation = parent_transformation * node->mTransformation;
 
@@ -25,12 +25,12 @@ void ModelLoader::process_node(aiNode *node, const aiScene *scene, std::vector<M
     for (unsigned int i = 0; i < node->mNumMeshes; i++)
     {
         aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
-        meshes.push_back(process_mesh(mesh, scene, node_transformation, materials_loaded));
+        meshes.push_back(process_mesh(mesh, scene, node_transformation, materials_loaded, invert_normals));
     }
 
     for (unsigned int i = 0; i < node->mNumChildren; i++)
     {
-        process_node(node->mChildren[i], scene, meshes, materials_loaded, node_transformation);
+        process_node(node->mChildren[i], scene, meshes, materials_loaded, node_transformation, invert_normals);
     }
 }
 glm::mat4 aiMatrixToGlm(const aiMatrix4x4 &aiMat)
@@ -57,7 +57,7 @@ void apply_transform(glm::vec3 &vertex, const aiMatrix4x4 &transformation)
     vertex = glm::vec3(transformed);
 }
 
-Mesh ModelLoader::process_mesh(aiMesh *mesh, const aiScene *scene, const aiMatrix4x4 &node_transformation, std::vector<std::string> &materials_loaded)
+Mesh ModelLoader::process_mesh(aiMesh *mesh, const aiScene *scene, const aiMatrix4x4 &node_transformation, std::vector<std::string> &materials_loaded, bool invert_normals)
 {
     // std::cout << "Processing mesh: " << mesh->mName.C_Str() << std::endl;
     std::vector<Vertex> vertices;
@@ -83,6 +83,10 @@ Mesh ModelLoader::process_mesh(aiMesh *mesh, const aiScene *scene, const aiMatri
             vector.y = mesh->mNormals[i].y;
             vector.z = mesh->mNormals[i].z;
             apply_transform(vector, mesh_transform);
+            if (invert_normals)
+            {
+                vector = -vector;
+            }
             vertex.normal = vector;
         }
 
@@ -238,13 +242,15 @@ void ModelLoader::process_external_texture(aiMaterial *mat, int slot, aiTextureT
 
 void ModelLoader::process_internal_texture(aiMaterial *mat, int slot, aiTextureType type, const aiScene *scene, std::vector<Texture> &textures)
 {
-    // std::cout << "internal texture" << std::endl;
+    std::cout << "internal texture" << std::endl;
     aiString texture_file;
     mat->Get(AI_MATKEY_TEXTURE(type, 0), texture_file);
 
     std::string tex_type;
     if (type == aiTextureType_DIFFUSE)
     {
+
+        std::cout << "diffuse" << std::endl;
         tex_type = "diffuse";
     }
     else if (type == aiTextureType_SPECULAR)
@@ -260,6 +266,7 @@ void ModelLoader::process_internal_texture(aiMaterial *mat, int slot, aiTextureT
     aiTexture *t = scene->mTextures[path];
     if (t->mHeight == 0)
     {
+        std::cout << "compressed texture" << std::endl;
         // compressed texture
         aiTexel *texel = t->pcData;
         unsigned char *rawData = reinterpret_cast<unsigned char *>(texel);

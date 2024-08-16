@@ -12,8 +12,8 @@
 
 using namespace std;
 
-const unsigned int width = 800;
-const unsigned int height = 800;
+const unsigned int width = 1600;
+const unsigned int height = 1600;
 
 btDiscreteDynamicsWorld *init_physics();
 GLFWwindow *init_renderer(int width, int height, const char *title);
@@ -49,12 +49,15 @@ int main()
 	// Compile and link the vertex and frag shaders into shaderprogram
 	Shader guitar_shader("../res/shaders/def.vert", "../res/shaders/def.frag");
 	Shader level_shader("../res/shaders/def.vert", "../res/shaders/def.frag");
+	Shader shadow_map_shader("../res/shaders/shadow_map.vert", "../res/shaders/shadow_map.frag");
 
 	float rotation = 0.0f;
 	double prevTime = glfwGetTime();
 
 	PhysicsNode3D guitar = PhysicsNode3D(glm::vec3(-3.0f, 10.0f, -2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.01f, 0.01f, 0.01f), guitar_shader, "../res/models/guitar.glb", 1.0f);
-	PhysicsNode3D level = PhysicsNode3D(glm::vec3(0.0f, -10.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(3.0f, 3.0f, 3.0f), level_shader, "../res/models/castle.obj", 0.0f);
+	PhysicsNode3D level = PhysicsNode3D(glm::vec3(0.0f, -10.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(3.0f, 3.0f, 3.0f), level_shader, "../res/models/castle.obj", 0.0f, false);
+	// PhysicsNode3D level = PhysicsNode3D(glm::vec3(0.0f, -10.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.001f, 0.001f, 0.001f), level_shader, "../res/models/terrain1.fbx", 0.0f);
+
 	dynamicsWorld->addRigidBody(level.rigid_body);
 	dynamicsWorld->addRigidBody(guitar.rigid_body);
 
@@ -76,11 +79,41 @@ int main()
 	main_camera = &camera;
 	cout << "camera created" << endl;
 
+	unsigned int shadow_map_fbo;
+	glGenFramebuffers(1, &shadow_map_fbo);
+
+	unsigned int shadow_map_width = 1024;
+	unsigned int shadow_map_height = 1024;
+	unsigned int shadow_map_texture;
+	glGenTextures(1, &shadow_map_texture);
+	glBindTexture(GL_TEXTURE_2D, shadow_map_texture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, shadow_map_width, shadow_map_height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	float clamp_color[] = {1.0f, 1.0f, 1.0f, 1.0f};
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, clamp_color);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, shadow_map_fbo);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadow_map_texture, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glm::vec3 lightPos = glm::vec3(0.5f, 0.5f, 0.5f);
+	glm::mat4 orthogonal = glm::ortho(-35.0f, 35.0f, -35.0f, 35.0f, 0.1f, 75.0f);
+	glm::mat4 lightView = glm::lookAt(20.0f * lightPos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	glm::mat4 lightProjection = orthogonal * lightView;
+
+	shadow_map_shader.Activate();
+	glUniformMatrix4fv(glGetUniformLocation(shadow_map_shader.ID, "lightProjection"), 1, GL_FALSE, glm::value_ptr(lightProjection));
+
 	while (!glfwWindowShouldClose(window))
 	{
-		glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
-		glClear(GL_DEPTH_BUFFER_BIT);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		// glClear(GL_COLOR_BUFFER_BIT);
+		// glClear(GL_DEPTH_BUFFER_BIT);
 		double crntTime = glfwGetTime();
 		if (crntTime - prevTime >= 1 / 60)
 		{
@@ -91,20 +124,47 @@ int main()
 			// Make pointlight fly back and forth
 			point_light.set_position(glm::vec3(point_light.position.x - 5 * cos(crntTime) / 60.0f, point_light.position.y + 2 * sin(crntTime) / 60.0f, point_light.position.z + 5 * sin(crntTime) / 60.0f));
 			point_light2.set_position(glm::vec3(point_light2.position.x + 5 * cos(crntTime) / 60.0f, point_light2.position.y - 2 * sin(crntTime) / 60.0f, point_light2.position.z - 5 * sin(crntTime) / 60.0f));
-			cout << "Pointlight position: " << glm::to_string(point_light.position) << endl;
+			// cout << "Pointlight position: " << glm::to_string(point_light.position) << endl;
 			prevTime = crntTime;
 		}
+
+		camera.inputs(window);
+		camera.update_matrix(70.0f, 0.1f, 1000.0f);
+
+		update_ubo_camera_matrices(ubo_camera_matrices, camera);
+		update_ubo_point_lights(ubo_point_lights, lights, light_count);
 
 		dynamicsWorld->stepSimulation(1 / 60.0f, 10, 1 / 60.0f);
 
 		guitar.update();
 		level.update();
 
-		camera.inputs(window);
-		camera.update_matrix(70.0f, 0.1f, 100.0f);
+		// glEnable(GL_DEPTH_TEST);
+		glEnable(GL_DEPTH_TEST);
+		// glEnable(GL_CULL_FACE);
+		// glCullFace(GL_BACK);
 
-		update_ubo_camera_matrices(ubo_camera_matrices, camera);
-		update_ubo_point_lights(ubo_point_lights, lights, light_count);
+		// Preparations for the Shadow Map
+		glViewport(0, 0, shadow_map_width, shadow_map_height);
+		glBindFramebuffer(GL_FRAMEBUFFER, shadow_map_fbo);
+		glClear(GL_DEPTH_BUFFER_BIT);
+		guitar.draw(shadow_map_shader, camera);
+		level.draw(shadow_map_shader, camera);
+		point_light.draw(shadow_map_shader, camera);
+		point_light2.draw(shadow_map_shader, camera);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glViewport(0, 0, width, height);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_DEPTH_BUFFER_BIT);
+
+		// Draw scene for shadow map
+		// model.Draw(shadowMapProgram, camera);
+		guitar.update_shadow_uniforms(lightProjection, shadow_map_texture);
+		level.update_shadow_uniforms(lightProjection, shadow_map_texture);
+		point_light.update_shadow_uniforms(lightProjection, shadow_map_texture);
+		point_light2.update_shadow_uniforms(lightProjection, shadow_map_texture);
 
 		guitar.draw();
 		level.draw();

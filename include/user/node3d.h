@@ -21,12 +21,14 @@ struct vector3
 class Node3D : public Node
 {
 public:
-    Node3D(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, Shader &shader, std::string model_file_path);
+    Node3D(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, Shader &shader, std::string model_file_path, bool invert_normals = false);
     void assign_meshes(std::vector<Mesh> meshes);
     void draw();
+    void draw(Shader &shader, Camera &camera);
     void set_position(glm::vec3 position);
     void set_rotation(glm::vec3 rotation);
     void set_scale(glm::vec3 scale);
+    void update_shadow_uniforms(glm::mat4 light_projection_matrix, GLuint shadow_map);
     glm::mat4 model;
     glm::vec3 position;
     glm::vec3 rotation;
