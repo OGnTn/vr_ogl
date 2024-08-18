@@ -47,7 +47,7 @@ void Node3D::update_model()
     this->model = glm::scale(this->model, this->scale);
 }
 
-void Node3D::update_shadow_uniforms(glm::mat4 light_projection_matrix, GLuint shadow_map)
+void Node3D::update_shadow_uniforms(glm::mat4 light_projection_matrix, glm::vec3 lightPos, glm::vec4 lightColor, GLuint shadow_map)
 {
 
     this->shader.Activate();
@@ -60,7 +60,7 @@ void Node3D::update_shadow_uniforms(glm::mat4 light_projection_matrix, GLuint sh
 
     for (Mesh mesh : this->meshes)
     {
-        mesh.update_shadow_uniforms(light_projection_matrix, shadow_map, this->shader);
+        mesh.update_shadow_uniforms(light_projection_matrix, shadow_map, lightPos, lightColor, this->shader);
     }
 }
 

@@ -23,10 +23,20 @@ Mesh::Mesh(std::vector<Vertex> &vertices, std::vector<GLuint> &indices, std::vec
     EBO.Unbind();
 }
 
-void Mesh::update_shadow_uniforms(glm::mat4 light_projection_matrix, GLuint shadow_map, Shader &shader)
+void Mesh::update_shadow_uniforms(glm::mat4 light_projection_matrix, GLuint shadow_map, glm::vec3 lightPos, glm::vec4 lightColor, Shader &shader)
 {
     shader.Activate();
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "lightProjection"), 1, GL_FALSE, glm::value_ptr(light_projection_matrix));
+    glUniform3f(glGetUniformLocation(shader.ID, "dir_light_pos"), lightPos.x, lightPos.y, lightPos.z);
+    if (glGetError() != 0)
+    {
+        std::cout << "light pos: " << glGetError() << std::endl;
+    }
+    glUniform4f(glGetUniformLocation(shader.ID, "dir_light_color"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
+    if (glGetError() != 0)
+    {
+        std::cout << "light color: " << glGetError() << std::endl;
+    }
     glUniform1i(glGetUniformLocation(shader.ID, "shadowMap"), 2);
     glActiveTexture(GL_TEXTURE0 + 2);
     glBindTexture(GL_TEXTURE_2D, shadow_map);

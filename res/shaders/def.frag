@@ -37,6 +37,9 @@ uniform sampler2D shadowMap;
 
 uniform vec4 lightColor;
 uniform vec3 lightPos;
+uniform vec3 dir_light_pos;
+uniform vec4 dir_light_color;
+
 //uniform vec3 camPos;
 
 vec4 point_light(int i) {
@@ -93,7 +96,7 @@ vec4 spot_light() {
 vec4 directional_light() {
    float ambient = 0.3f;
    vec3 normal = normalize(-Normal);
-   vec3 lightDir = normalize(vec3(0.5f, 0.5f, 0.5f));
+   vec3 lightDir = normalize(dir_light_pos);
 
    float diffuse = max(dot(normal, lightDir), 0.0f);
 
@@ -119,7 +122,7 @@ vec4 directional_light() {
          shadow = 1.0f;
       }
 		// Prevents shadow acne
-		float bias = max(0.013f * (1.0f - dot(normal, lightDir)), 0.02f);
+		float bias = max(0.007f * (1.0f - dot(normal, lightDir)), 0.01f);
 
 		// Smoothens out the shadows
 		int sampleRadius = 2;
@@ -139,7 +142,7 @@ vec4 directional_light() {
    
    
 
-   return (texture(diffuse0, texCoord) * (diffuse * (1.0f - shadow) + ambient) + texture(specular0, texCoord).r * specular  * (1.0f - shadow)) * vec4(1.0f, 1.0f, 1.0f, 1.0f);
+   return (texture(diffuse0, texCoord) * (diffuse * (1.0f - shadow) + ambient) + texture(specular0, texCoord).r * specular  * (1.0f - shadow)) * dir_light_color;
    //return texture(shadowMap, lightCoords.xy);
    //return texture(diffuse0, texCoord);
    }

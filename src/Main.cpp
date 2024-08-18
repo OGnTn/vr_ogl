@@ -22,6 +22,7 @@ unsigned int init_ubo_point_lights(int light_count);
 void update_ubo_camera_matrices(unsigned int ubo_camera_matrices, Camera &camera);
 void update_ubo_point_lights(unsigned int ubo_point_lights, PointLight *lights[], int light_count);
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
+glm::mat4 update_light_projection(glm::vec3 lightPos);
 
 Camera *main_camera;
 
@@ -32,12 +33,12 @@ int main()
 	GLFWwindow *window = init_renderer(width, height, "Bullet Physics");
 
 	vector<std::string> faces{
-		"../res/textures/skybox/right.jpg",
-		"../res/textures/skybox/left.jpg",
-		"../res/textures/skybox/top.jpg",
-		"../res/textures/skybox/bottom.jpg",
-		"../res/textures/skybox/front.jpg",
-		"../res/textures/skybox/back.jpg"};
+		"../res/textures/skybox2/right.jpg",
+		"../res/textures/skybox2/left.jpg",
+		"../res/textures/skybox2/top.jpg",
+		"../res/textures/skybox2/bottom.jpg",
+		"../res/textures/skybox2/front.jpg",
+		"../res/textures/skybox2/back.jpg"};
 
 	Skybox skybox = Skybox(faces);
 	cout << "Skybox created" << endl;
@@ -102,9 +103,9 @@ int main()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	glm::vec3 lightPos = glm::vec3(0.5f, 0.5f, 0.5f);
-	glm::mat4 orthogonal = glm::ortho(-35.0f, 35.0f, -35.0f, 35.0f, 0.1f, 75.0f);
-	glm::mat4 lightView = glm::lookAt(20.0f * lightPos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	glm::mat4 lightProjection = orthogonal * lightView;
+	glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+	glm::mat4 lightProjection = update_light_projection(lightPos);
 
 	shadow_map_shader.Activate();
 	glUniformMatrix4fv(glGetUniformLocation(shadow_map_shader.ID, "lightProjection"), 1, GL_FALSE, glm::value_ptr(lightProjection));
@@ -124,7 +125,9 @@ int main()
 			// Make pointlight fly back and forth
 			point_light.set_position(glm::vec3(point_light.position.x - 5 * cos(crntTime) / 60.0f, point_light.position.y + 2 * sin(crntTime) / 60.0f, point_light.position.z + 5 * sin(crntTime) / 60.0f));
 			point_light2.set_position(glm::vec3(point_light2.position.x + 5 * cos(crntTime) / 60.0f, point_light2.position.y - 2 * sin(crntTime) / 60.0f, point_light2.position.z - 5 * sin(crntTime) / 60.0f));
-			// cout << "Pointlight position: " << glm::to_string(point_light.position) << endl;
+			// lightPos.x += 5 * sin(crntTime) / 6000.0f;
+			// lightPos.z += 50 * cos(crntTime) / 6000.0f;
+			//  cout << "Pointlight position: " << glm::to_string(point_light.position) << endl;
 			prevTime = crntTime;
 		}
 
@@ -142,7 +145,7 @@ int main()
 		// glEnable(GL_DEPTH_TEST);
 		glEnable(GL_DEPTH_TEST);
 		// glEnable(GL_CULL_FACE);
-		// glCullFace(GL_BACK);
+		//  glCullFace(GL_FRONT);
 
 		// Preparations for the Shadow Map
 		glViewport(0, 0, shadow_map_width, shadow_map_height);
@@ -154,6 +157,7 @@ int main()
 		point_light2.draw(shadow_map_shader, camera);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		// glCullFace(GL_BACK);
 		glViewport(0, 0, width, height);
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -161,10 +165,12 @@ int main()
 
 		// Draw scene for shadow map
 		// model.Draw(shadowMapProgram, camera);
-		guitar.update_shadow_uniforms(lightProjection, shadow_map_texture);
-		level.update_shadow_uniforms(lightProjection, shadow_map_texture);
-		point_light.update_shadow_uniforms(lightProjection, shadow_map_texture);
-		point_light2.update_shadow_uniforms(lightProjection, shadow_map_texture);
+		lightProjection = update_light_projection(lightPos);
+
+		guitar.update_shadow_uniforms(lightProjection, lightPos, lightColor, shadow_map_texture);
+		level.update_shadow_uniforms(lightProjection, lightPos, lightColor, shadow_map_texture);
+		point_light.update_shadow_uniforms(lightProjection, lightPos, lightColor, shadow_map_texture);
+		point_light2.update_shadow_uniforms(lightProjection, lightPos, lightColor, shadow_map_texture);
 
 		guitar.draw();
 		level.draw();
@@ -181,12 +187,19 @@ int main()
 	glfwTerminate();
 }
 
+glm::mat4 update_light_projection(glm::vec3 lightPos)
+{
+	glm::mat4 orthogonal = glm::ortho(-35.0f, 35.0f, -35.0f, 35.0f, 0.1f, 75.0f);
+	glm::mat4 lightView = glm::lookAt(20.0f * lightPos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	return orthogonal * lightView;
+}
+
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 {
+	glViewport(0, 0, width, height);
 	main_camera->width = width;
 	main_camera->height = height;
-	main_camera->update_matrix(70.0f, 0.1f, 100.0f);
-	glViewport(0, 0, width, height);
+	main_camera->update_matrix(70.0f, 0.1f, 1000.0f);
 }
 
 void update_ubo_camera_matrices(unsigned int ubo_camera_matrices, Camera &camera)

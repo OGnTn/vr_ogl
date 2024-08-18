@@ -23,7 +23,7 @@ public:
     Mesh(std::vector<Vertex> &vertices, std::vector<GLuint> &indices, std::vector<Texture> &textures);
     void Draw(glm::mat4 model, Shader &shader);
     void Draw(Shader &shader, Camera &camera, glm::mat4 model);
-    void update_shadow_uniforms(glm::mat4 light_projection_matrix, GLuint shadow_map, Shader &shader);
+    void update_shadow_uniforms(glm::mat4 light_projection_matrix, GLuint shadow_map, glm::vec3 lightPos, glm::vec4 lightColor, Shader &shader);
 };
 
 #endif
