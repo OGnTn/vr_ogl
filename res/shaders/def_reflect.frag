@@ -10,7 +10,7 @@ in vec3 camPos;
 in vec4 fragPosLight;
 
 const int NR_POINT_LIGHTS = 2;
-const float REFLECT_AMOUNT = 0.0f;
+const float REFLECT_AMOUNT = 1.0f;
 
 struct str_point_light
 {
@@ -175,7 +175,7 @@ void main()
    {
       discard;
    }
-   FragColor = c;
+   FragColor = envColor;
    //FragColor
    //FragColor = directional_light();
    

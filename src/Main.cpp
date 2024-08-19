@@ -23,6 +23,7 @@ void update_ubo_camera_matrices(unsigned int ubo_camera_matrices, Camera &camera
 void update_ubo_point_lights(unsigned int ubo_point_lights, PointLight *lights[], int light_count);
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 glm::mat4 update_light_projection(glm::vec3 lightPos);
+void sort_transparent_objects(vector<PhysicsNode3D *> &objects, Camera &camera);
 
 Camera *main_camera;
 
@@ -52,15 +53,24 @@ int main()
 	Shader level_shader("../res/shaders/def.vert", "../res/shaders/def.frag");
 	Shader monkey_shader("../res/shaders/def.vert", "../res/shaders/def.frag");
 	Shader shadow_map_shader("../res/shaders/shadow_map.vert", "../res/shaders/shadow_map.frag");
+	Shader transparent_shader("../res/shaders/def.vert", "../res/shaders/blended.frag");
+	Shader reflect_shader("../res/shaders/def.vert", "../res/shaders/def_reflect.frag");
 
 	float rotation = 0.0f;
 	double prevTime = glfwGetTime();
 
 	PhysicsNode3D guitar = PhysicsNode3D(glm::vec3(0.0f, 20.0f, -4.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.01f, 0.01f, 0.01f), guitar_shader, "../res/models/guitar.glb", 1.0f);
 	PhysicsNode3D monkey = PhysicsNode3D(glm::vec3(2.0f, 5.0f, -4.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), monkey_shader, "../res/models/monkey.dae", 1.0f);
+	PhysicsNode3D monkey_reflect = PhysicsNode3D(glm::vec3(0.0f, 5.0f, -4.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(2.0f, 2.0f, 2.0f), reflect_shader, "../res/models/monkey.dae", 1.0f);
+
 	// PhysicsNode3D guitar = PhysicsNode3D(glm::vec3(8.0f, 5.0f, -4.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(f, 1.0f, 1.0f), guitar_shader, "../res/models/guitar.glb", 1.0f);
 
 	PhysicsNode3D level = PhysicsNode3D(glm::vec3(0.0f, -10.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(3.0f, 3.0f, 3.0f), level_shader, "../res/models/castle.obj", 0.0f, false);
+	PhysicsNode3D transblue = PhysicsNode3D(glm::vec3(3.0f, -5.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), transparent_shader, "../res/models/transblue.glb", 1.0f, false);
+	PhysicsNode3D transorange = PhysicsNode3D(glm::vec3(2.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), transparent_shader, "../res/models/transorange.glb", 1.0f, false);
+
+	vector<PhysicsNode3D *> transparent_objects = {&transblue, &transorange};
+
 	// PhysicsNode3D monkey = PhysicsNode3D(glm::vec3(0.0f, 10.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), monkey_shader, "../res/models/monkey.dae", 1.0f);
 
 	// PhysicsNode3D level = PhysicsNode3D(glm::vec3(0.0f, -10.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.001f, 0.001f, 0.001f), level_shader, "../res/models/terrain1.fbx", 0.0f);
@@ -68,6 +78,9 @@ int main()
 	dynamicsWorld->addRigidBody(level.rigid_body);
 	dynamicsWorld->addRigidBody(guitar.rigid_body);
 	dynamicsWorld->addRigidBody(monkey.rigid_body);
+	dynamicsWorld->addRigidBody(monkey_reflect.rigid_body);
+	dynamicsWorld->addRigidBody(transblue.rigid_body);
+	dynamicsWorld->addRigidBody(transorange.rigid_body);
 
 	PointLight point_light = PointLight(glm::vec3(0.0f, -7.0f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec4(0.0f, 0.0f, 1.0f, 1.0f), .1, 0.01f, 0.001f, "../res/models/lightball.dae");
 	PointLight point_light2 = PointLight(glm::vec3(1.0f, -8.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), .1, 0.01f, 0.001f, "../res/models/lightball.dae");
@@ -120,8 +133,9 @@ int main()
 	while (!glfwWindowShouldClose(window))
 	{
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		// glClear(GL_COLOR_BUFFER_BIT);
-		// glClear(GL_DEPTH_BUFFER_BIT);
+
+		level.set_cubemap(skybox.texture_id);
+
 		double crntTime = glfwGetTime();
 		if (crntTime - prevTime >= 1 / 60)
 		{
@@ -149,9 +163,13 @@ int main()
 		guitar.update();
 		level.update();
 		monkey.update();
+		monkey_reflect.update();
+		transblue.update();
+		transorange.update();
 
 		// glEnable(GL_DEPTH_TEST);
 		glEnable(GL_DEPTH_TEST);
+
 		// glEnable(GL_CULL_FACE);
 		//  glCullFace(GL_FRONT);
 
@@ -162,8 +180,11 @@ int main()
 		guitar.draw(shadow_map_shader, camera);
 		level.draw(shadow_map_shader, camera);
 		monkey.draw(shadow_map_shader, camera);
+		monkey_reflect.draw(shadow_map_shader, camera);
 		point_light.draw(shadow_map_shader, camera);
 		point_light2.draw(shadow_map_shader, camera);
+		transblue.draw(shadow_map_shader, camera);
+		transorange.draw(shadow_map_shader, camera);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		// glCullFace(GL_BACK);
@@ -179,14 +200,27 @@ int main()
 		guitar.update_shadow_uniforms(lightProjection, lightPos, lightColor, shadow_map_texture);
 		level.update_shadow_uniforms(lightProjection, lightPos, lightColor, shadow_map_texture);
 		monkey.update_shadow_uniforms(lightProjection, lightPos, lightColor, shadow_map_texture);
+		monkey_reflect.update_shadow_uniforms(lightProjection, lightPos, lightColor, shadow_map_texture);
+
 		point_light.update_shadow_uniforms(lightProjection, lightPos, lightColor, shadow_map_texture);
 		point_light2.update_shadow_uniforms(lightProjection, lightPos, lightColor, shadow_map_texture);
+
+		transblue.update_shadow_uniforms(lightProjection, lightPos, lightColor, shadow_map_texture);
+		transorange.update_shadow_uniforms(lightProjection, lightPos, lightColor, shadow_map_texture);
 
 		guitar.draw();
 		level.draw();
 		monkey.draw();
+		monkey_reflect.draw();
 		point_light.draw();
 		point_light2.draw();
+		sort_transparent_objects(transparent_objects, camera);
+		glEnable(GL_BLEND);
+		for (PhysicsNode3D *object : transparent_objects)
+		{
+			object->draw();
+		}
+		glDisable(GL_BLEND);
 
 		skybox.draw(camera);
 
@@ -200,7 +234,6 @@ int main()
 	monkey.free();
 	point_light.free();
 	point_light2.free();
-	delete main_camera;
 	guitar_shader.Delete();
 	level_shader.Delete();
 	monkey_shader.Delete();
@@ -208,6 +241,15 @@ int main()
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
+}
+
+void sort_transparent_objects(vector<PhysicsNode3D *> &objects, Camera &camera)
+{
+	std::sort(objects.begin(), objects.end(), [&camera](PhysicsNode3D *a, PhysicsNode3D *b)
+			  {
+		float distance_a = glm::length(camera.position - a->position);
+		float distance_b = glm::length(camera.position - b->position);
+		return distance_a > distance_b; });
 }
 
 glm::mat4 update_light_projection(glm::vec3 lightPos)
@@ -322,6 +364,8 @@ GLFWwindow *init_renderer(int width, int height, const char *title)
 
 	// Set the viewport, and a bg color -> then swap the buffers
 	glViewport(0, 0, width, height);
+
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	return window;
 }

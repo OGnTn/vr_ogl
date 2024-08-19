@@ -29,6 +29,7 @@ public:
     void set_rotation(glm::vec3 rotation);
     void set_scale(glm::vec3 scale);
     void update_shadow_uniforms(glm::mat4 light_projection_matrix, glm::vec3 lightPos, glm::vec4 lightColor, GLuint shadow_map);
+    void set_cubemap(GLuint cubemap);
     glm::mat4 model;
     glm::vec3 position;
     glm::vec3 rotation;

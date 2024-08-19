@@ -58,6 +58,13 @@ void Node3D::update_shadow_uniforms(glm::mat4 light_projection_matrix, glm::vec3
     }
 }
 
+void Node3D::set_cubemap(GLuint cubemap)
+{
+    this->shader.Activate();
+    glActiveTexture(GL_TEXTURE0 + 3);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap);
+}
+
 void Node3D::draw()
 {
     this->shader.Activate();

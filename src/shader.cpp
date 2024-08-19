@@ -73,6 +73,7 @@ Shader::Shader(const char *vertex_file, const char *fragment_file)
 void Shader::Activate()
 {
     glUseProgram(ID);
+    glUniform1i(glGetUniformLocation(ID, "skybox"), 3);
 }
 
 void Shader::Delete()
