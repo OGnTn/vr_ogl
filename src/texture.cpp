@@ -46,7 +46,7 @@ Texture::Texture(unsigned char *data, int width, int height, int channel_count, 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    std::cout << "channelc: " << channel_count << std::endl;
+    // std::cout << "channelc: " << channel_count << std::endl;
 
     if (channel_count == 4)
         glTexImage2D(

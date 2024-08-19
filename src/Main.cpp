@@ -50,17 +50,24 @@ int main()
 	// Compile and link the vertex and frag shaders into shaderprogram
 	Shader guitar_shader("../res/shaders/def.vert", "../res/shaders/def.frag");
 	Shader level_shader("../res/shaders/def.vert", "../res/shaders/def.frag");
+	Shader monkey_shader("../res/shaders/def.vert", "../res/shaders/def.frag");
 	Shader shadow_map_shader("../res/shaders/shadow_map.vert", "../res/shaders/shadow_map.frag");
 
 	float rotation = 0.0f;
 	double prevTime = glfwGetTime();
 
-	PhysicsNode3D guitar = PhysicsNode3D(glm::vec3(-3.0f, 10.0f, -2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.01f, 0.01f, 0.01f), guitar_shader, "../res/models/guitar.glb", 1.0f);
+	PhysicsNode3D guitar = PhysicsNode3D(glm::vec3(0.0f, 20.0f, -4.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.01f, 0.01f, 0.01f), guitar_shader, "../res/models/guitar.glb", 1.0f);
+	PhysicsNode3D monkey = PhysicsNode3D(glm::vec3(2.0f, 5.0f, -4.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), monkey_shader, "../res/models/monkey.dae", 1.0f);
+	// PhysicsNode3D guitar = PhysicsNode3D(glm::vec3(8.0f, 5.0f, -4.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(f, 1.0f, 1.0f), guitar_shader, "../res/models/guitar.glb", 1.0f);
+
 	PhysicsNode3D level = PhysicsNode3D(glm::vec3(0.0f, -10.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(3.0f, 3.0f, 3.0f), level_shader, "../res/models/castle.obj", 0.0f, false);
+	// PhysicsNode3D monkey = PhysicsNode3D(glm::vec3(0.0f, 10.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), monkey_shader, "../res/models/monkey.dae", 1.0f);
+
 	// PhysicsNode3D level = PhysicsNode3D(glm::vec3(0.0f, -10.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.001f, 0.001f, 0.001f), level_shader, "../res/models/terrain1.fbx", 0.0f);
 
 	dynamicsWorld->addRigidBody(level.rigid_body);
 	dynamicsWorld->addRigidBody(guitar.rigid_body);
+	dynamicsWorld->addRigidBody(monkey.rigid_body);
 
 	PointLight point_light = PointLight(glm::vec3(0.0f, -7.0f, 0.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec4(0.0f, 0.0f, 1.0f, 1.0f), .1, 0.01f, 0.001f, "../res/models/lightball.dae");
 	PointLight point_light2 = PointLight(glm::vec3(1.0f, -8.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), .1, 0.01f, 0.001f, "../res/models/lightball.dae");
@@ -141,6 +148,7 @@ int main()
 
 		guitar.update();
 		level.update();
+		monkey.update();
 
 		// glEnable(GL_DEPTH_TEST);
 		glEnable(GL_DEPTH_TEST);
@@ -153,6 +161,7 @@ int main()
 		glClear(GL_DEPTH_BUFFER_BIT);
 		guitar.draw(shadow_map_shader, camera);
 		level.draw(shadow_map_shader, camera);
+		monkey.draw(shadow_map_shader, camera);
 		point_light.draw(shadow_map_shader, camera);
 		point_light2.draw(shadow_map_shader, camera);
 
@@ -169,11 +178,13 @@ int main()
 
 		guitar.update_shadow_uniforms(lightProjection, lightPos, lightColor, shadow_map_texture);
 		level.update_shadow_uniforms(lightProjection, lightPos, lightColor, shadow_map_texture);
+		monkey.update_shadow_uniforms(lightProjection, lightPos, lightColor, shadow_map_texture);
 		point_light.update_shadow_uniforms(lightProjection, lightPos, lightColor, shadow_map_texture);
 		point_light2.update_shadow_uniforms(lightProjection, lightPos, lightColor, shadow_map_texture);
 
 		guitar.draw();
 		level.draw();
+		monkey.draw();
 		point_light.draw();
 		point_light2.draw();
 
@@ -182,6 +193,18 @@ int main()
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
+
+	delete dynamicsWorld;
+	guitar.free();
+	level.free();
+	monkey.free();
+	point_light.free();
+	point_light2.free();
+	delete main_camera;
+	guitar_shader.Delete();
+	level_shader.Delete();
+	monkey_shader.Delete();
+	shadow_map_shader.Delete();
 
 	glfwDestroyWindow(window);
 	glfwTerminate();

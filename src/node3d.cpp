@@ -7,7 +7,7 @@ Node3D::Node3D(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, Shader &
     this->scale = scale;
     this->shader = shader;
     ModelLoader::load_model(model_file_path, this->meshes, invert_normals);
-    std::cout << "mesh count: " << this->meshes.size() << std::endl;
+    // std::cout << "mesh count: " << this->meshes.size() << std::endl;
     update_model();
 }
 
@@ -51,12 +51,6 @@ void Node3D::update_shadow_uniforms(glm::mat4 light_projection_matrix, glm::vec3
 {
 
     this->shader.Activate();
-    // glUniformMatrix4fv(glGetUniformLocation(this->shader.ID, "lightProjection"), 1, GL_FALSE, glm::value_ptr(light_projection_matrix));
-    //
-    // GLuint slot = GL_TEXTURE0 + 2;
-    // glActiveTexture(slot);
-    // glBindTexture(GL_TEXTURE_2D, shadow_map);
-    // glUniform1i(glGetUniformLocation(this->shader.ID, "shadowMap"), slot);
 
     for (Mesh mesh : this->meshes)
     {

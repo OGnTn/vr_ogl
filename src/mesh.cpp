@@ -5,7 +5,7 @@ Mesh::Mesh(std::vector<Vertex> &vertices, std::vector<GLuint> &indices, std::vec
     this->vertices = vertices;
     this->indices = indices;
     this->textures = textures;
-    std::cout << textures.size() << std::endl;
+    // std::cout << textures.size() << std::endl;
     this->shader = Shader("../res/shaders/def.vert", "../res/shaders/def.vert");
 
     VAO.Bind();
@@ -74,9 +74,7 @@ void Mesh::Draw(glm::mat4 model, Shader &shader)
             std::cout << "mesh bind tex  " << i << error << std::endl;
         }
     }
-    // << glGetError() << std::endl;
-    // glUniform3f(glGetUniformLocation(shader.ID, "camPos"), camera.Position.x, camera.Position.y, camera.Position.z);
-    // camera.Matrix(shader, "camMatrix");
+
     glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
     GLenum error = glGetError();
     if (error != 0)

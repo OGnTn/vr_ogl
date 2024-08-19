@@ -34,6 +34,11 @@ btRigidBody *PhysicsNode3D::create_rigid_body(btCollisionShape *collision_shape)
         btScalar _mass(this->mass);
         collision_shape->calculateLocalInertia(_mass, localInertia);
     }
+    // localInertia /= 500.0f;
+    if (localInertia.length() >= 3000.0f)
+    {
+        localInertia /= 1000.0f;
+    }
 
     // localInertia /= 10.0f;
     std::cout << "Local inertia: " << localInertia.getX() << ", " << localInertia.getY() << ", " << localInertia.getZ() << std::endl;

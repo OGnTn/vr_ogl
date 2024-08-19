@@ -160,7 +160,8 @@ void ModelLoader::process_external_texture(aiMaterial *mat, int slot, aiTextureT
     aiString texture_file;
     mat->Get(AI_MATKEY_TEXTURE(type, 0), texture_file);
     // std::cout << "external texture" << std::endl;
-    //   if the path contains "/", assume it is an absolute path
+    // std::cout << texture_file.C_Str() << std::endl;
+    //    if the path contains "/", assume it is an absolute path
 
     std::string tex_type;
     if (type == aiTextureType_DIFFUSE)
@@ -201,7 +202,7 @@ void ModelLoader::process_external_texture(aiMaterial *mat, int slot, aiTextureT
         if (!f.good())
         {
             // std::cout << "Texture file not found: " << texture_path << std::endl;
-            //  modify jpg file extension to jpeg
+            //   modify jpg file extension to jpeg
             std::string::size_type pos = texture_path.rfind('.');
             if (pos != std::string::npos)
             {
@@ -234,7 +235,8 @@ void ModelLoader::process_external_texture(aiMaterial *mat, int slot, aiTextureT
 
         std::string texture_path = "../res/textures/";
         texture_path += texture_file.C_Str();
-        // std::cout << "internal texture" << std::endl;
+        // std::cout << texture_path << std::endl;
+        //  std::cout << "internal texture" << std::endl;
         Texture tex(texture_path.c_str(), tex_type.c_str(), slot, GL_RGBA, GL_UNSIGNED_BYTE);
         textures.push_back(tex);
     }
@@ -242,7 +244,7 @@ void ModelLoader::process_external_texture(aiMaterial *mat, int slot, aiTextureT
 
 void ModelLoader::process_internal_texture(aiMaterial *mat, int slot, aiTextureType type, const aiScene *scene, std::vector<Texture> &textures)
 {
-    std::cout << "internal texture" << std::endl;
+    // << "internal texture" << std::endl;
     aiString texture_file;
     mat->Get(AI_MATKEY_TEXTURE(type, 0), texture_file);
 
@@ -250,7 +252,7 @@ void ModelLoader::process_internal_texture(aiMaterial *mat, int slot, aiTextureT
     if (type == aiTextureType_DIFFUSE)
     {
 
-        std::cout << "diffuse" << std::endl;
+        // std::cout << "diffuse" << std::endl;
         tex_type = "diffuse";
     }
     else if (type == aiTextureType_SPECULAR)
@@ -266,8 +268,8 @@ void ModelLoader::process_internal_texture(aiMaterial *mat, int slot, aiTextureT
     aiTexture *t = scene->mTextures[path];
     if (t->mHeight == 0)
     {
-        std::cout << "compressed texture" << std::endl;
-        // compressed texture
+        // std::cout << "compressed texture" << std::endl;
+        //  compressed texture
         aiTexel *texel = t->pcData;
         unsigned char *rawData = reinterpret_cast<unsigned char *>(texel);
 
